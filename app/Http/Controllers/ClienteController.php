@@ -2,11 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreClienteRequest;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
     public function index(){
-        return view('clientes.index');
+
+        $clientes = Cliente::orderBy('nombre', 'asc')->get();
+        return view('clientes.index')->with(compact(['clientes']));
+    }
+
+    public function create(){
+        return view('clientes.create');
+    }
+
+    public function store(StoreClienteRequest $request){
+        Cliente::createOrUpdate([
+            'cuit' => preg_replace('/\D/', '', $request->cuit),
+        ],[
+            'nombre' => $request->nombre,
+            'email' => $request->email,
+            'telefono' => $request->telefono,
+            'direccion' => $request->direccion,
+        ]);
+
+
     }
 }
