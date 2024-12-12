@@ -2,7 +2,7 @@
 
 use App\Models\VariableGlobal;
 
-function variable_global($clave){
+function variable_global($clave): string{
 	if(VariableGlobal::select('valor')->where('clave', $clave)->count() > 0 ){
 		return VariableGlobal::select('valor')->where('clave', $clave)->first()->valor;
 	}else{
@@ -18,4 +18,8 @@ function obj_variable_global($clave){
 
 function pesosargentinos($importe){
 	return number_format($importe, 2, ',', '.');
+}
+
+function afipDir():string{
+	return dirname($_SERVER['DOCUMENT_ROOT']) . '/afip_resources/';
 }
