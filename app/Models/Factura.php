@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Factura extends Model
 {
-    protected $table = 'facturas';
+    protected $table = 'factura';
     protected $fillable = [
         'codigo_afip',
         'nro_factura',

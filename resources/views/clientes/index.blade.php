@@ -12,36 +12,20 @@
                 <thead>
                     <tr>
                         <th>Razón Social</th>
-                        <th>Deuda</th>
-                        <th>Honorarios</th>
-                        @can('administrar')
                         <th>Opciones</th>
-                        @endcan
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($clientes as $cliente)
-                    <tr class="row-click" data-url="{{route('cliente.show', $cliente->id)}}">
+                    <tr role="button" onClick="window.location.href='{{route('clientes.dashboard', $cliente->id)}}'">
                         <td>
-                            {{$cliente->razon_social}} 
-                            @if($cliente->activo)
-                            <i class="fas fa-circle text-success" data-toggle="tooltip" title="Cliente activo"></i>
-                            @else
-                            <i class="fas fa-times-circle text-danger" data-toggle="tooltip" title="Cliente inactivo"></i>
-                            @endif
-                            
+                            {{$cliente->nombre}}                             
                         </td>
-                        <td>${{pesosargentinos($cliente->deuda)}}</td>
-                        <td>${{pesosargentinos($cliente->honorarios)}}</td>
-                        @can('administrar')
+
                         <td>
-                            <a data-toggle="tooltip" title="Panel del cliente" class="btn btn-primary btn-sm" href="{{route('cliente.show', $cliente->id)}}"><i class="far fa-clipboard"></i></a>
-                            @if(!sistema_vencido())
-                            <button data-toggle="tooltip" title="Editar datos de Empresa" data-id="{{$cliente->id}}" data-url="{{route('cliente.update', $cliente->id)}}" class="btn btn-warning editar_cliente btn-sm" ><i class="fas fa-pencil-alt"></i></button>
-                            <button data-toggle="tooltip" title="Eliminar" data-url="{{route('cliente.destroy', $cliente->id)}}" class="btn btn-danger eliminar_cliente btn-sm"><i class="fas fa-trash"></i></button>
-                            @endif
+                            <a href="{{route('clientes.dashboard', $cliente->id)}}" class="btn btn-primary btn-sm"><i class="fas fa-list"></i></a>
                         </td>
-                        @endcan
+                        
                     </tr>
                     @endforeach
                 </tbody>
@@ -52,4 +36,15 @@
 
         </div>
     </div>
+
+     @push('scripts')
+     <script>
+        const dashboardCliente = (e) => {
+            console.log(e)
+            // const url = e.target.getAttribute('data-url');
+            // window.location.href = url;
+        }
+        </script>
+    @endpush
+
 </x-app-layout>

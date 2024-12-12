@@ -19,7 +19,7 @@ class ClienteController extends Controller
     }
 
     public function store(StoreClienteRequest $request){
-        Cliente::createOrUpdate([
+        Cliente::updateOrCreate([
             'cuit' => preg_replace('/\D/', '', $request->cuit),
         ],[
             'nombre' => $request->nombre,
@@ -28,6 +28,14 @@ class ClienteController extends Controller
             'direccion' => $request->direccion,
         ]);
 
+        toast('Cliente creado correctamente', 'success');
+        return redirect()->route('clientes.index');
+    }
+
+    public function dashboard(Cliente $cliente){
+
+        $facturas = $cliente->facturas;
+        return view('clientes.dashboard')->with(compact(['cliente', 'facturas']));
 
     }
 }
