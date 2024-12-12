@@ -15,6 +15,9 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('items.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('items.index') }}">Servicios</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('config.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('config.index') }}">Configuraciones</a>
+                </li>
             </ul>
             <ul class="navbar-nav ms-auto fs-5">
                 @guest

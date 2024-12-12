@@ -10,7 +10,7 @@ function variable_global($clave){
 	}
 }
 function obj_variable_global($clave){
-	if(VariableGlobal::select('valor')->where('clave', $clave)->count() > 0 ){
+	if(VariableGlobal::where('clave', $clave)->first()){
 		return VariableGlobal::where('clave', $clave)->first();
 	}
 	return false;

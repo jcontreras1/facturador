@@ -11,7 +11,7 @@ class ConfigController extends Controller
 {
     public function index(){
         $variables = VariableGlobal::all();
-        return view('empresa.configuraciones.index')->with(compact([
+        return view('config.index')->with(compact([
             'variables',
         ]));
     }
@@ -24,7 +24,6 @@ class ConfigController extends Controller
 
     public function set_avatar(Request $request){
         $obj = obj_variable_global('AVATAR');
-        $this->authorize('update', $obj);
         if($request->hasFile('avatar')){
 
             $request->validate([
@@ -40,7 +39,6 @@ class ConfigController extends Controller
 
     public function unset_avatar(Request $request){
         $obj = obj_variable_global('AVATAR');
-        $this->authorize('update', $obj);
         if(Storage::exists(str_replace(url('/storage'), '', $obj->valor))){
             Storage::delete(str_replace(url('/storage'), '', $obj->valor));
         }
