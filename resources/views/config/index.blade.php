@@ -150,6 +150,26 @@
                 </div>
             </div>
             
+            {{-- Punto de venta de facturación --}}
+            <div class="col-12 col-md-3 mb-3">
+                <div class="card info h-100">
+                    <div class="card-body">
+                        <div class="display-3">
+                            <i class="far fa-building text-muted"></i>
+                        </div>
+                        <h5 class="card-title">Punto de Venta</h5>
+                        <small>Sin este valor no se puede facturar</small>
+                        <hr>
+                        <form method="post" action="{{route('config.update', obj_variable_global('PUNTO_VENTA')->id)}}" >
+                            @csrf @method('patch')
+                            <input class="form form-control mb-3" name="valor" value="{{variable_global('PUNTO_VENTA')}}">
+                            <button class="btn btn-success">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            
         </div>
         
         <form method="POST" id="formEliminarMembrete" action="{{route('avatar.destroy')}}">@csrf @method('DELETE')</form>
