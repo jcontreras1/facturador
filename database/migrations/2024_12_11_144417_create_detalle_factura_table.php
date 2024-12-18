@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('unidad')->default('unidades');
             $table->double('precio_unitario');
             $table->double('alicuota_iva')->nullable();
+            $table->double('porcentaje_bonificacion')->nullable();
+            $table->double('importe_bonificado')->nullable();
             $table->double('total');
             $table->timestamps();
         });

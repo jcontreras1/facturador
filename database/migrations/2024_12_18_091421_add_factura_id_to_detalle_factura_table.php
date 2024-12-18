@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('variable_global', function (Blueprint $table) {
-            $table->id();
-            $table->string('clave');
-            $table->longText('valor')->nullable();
-            $table->string('descripcion');
-            $table->timestamps();
+        Schema::table('detalle_factura', function (Blueprint $table) {
+            $table->unsignedBigInteger('factura_id')->nullable();
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('variable_global');
+        Schema::table('detalle_factura', function (Blueprint $table) {
+            $table->dropColumn('factura_id');
+        });
     }
 };
