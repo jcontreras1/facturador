@@ -21,11 +21,11 @@ class Afip {
         
         $this->CUIT = variable_global('CUIT_EMPRESA');
         $this->PASSPHRASE = '';
-        $this->RES_FOLDER = afipDir();
+        $this->RES_FOLDER = afipWsDir();
         $this->TA_FOLDER = afipDir();
         $this->CERT 		= afipDir() . 'cert';
         $this->PRIVATEKEY 	= afipDir() . 'key';
-        $this->WSAA_WSDL 	= afipDir() . 'wsaa.wsdl';
+        $this->WSAA_WSDL 	= afipWsDir() . 'wsaa.wsdl';
         
         $this->WSAA_URL = config('app.debug') === true ? "https://wsaahomo.afip.gov.ar/ws/services/LoginCms" : "https://wsaa.afip.gov.ar/ws/services/LoginCms";
         
@@ -204,9 +204,9 @@ class Afip {
             }
             else {
                 if (config('app.debug') === FALSE) {
-                    $this->WSDL = afipDir() . $this->WSDL;
+                    $this->WSDL = afipWsDir() . $this->WSDL;
                 } else {
-                    $this->WSDL = afipDir() . $this->WSDL_TEST;
+                    $this->WSDL = afipWsDir() . $this->WSDL_TEST;
                     $this->URL 	= $this->URL_TEST;
                 }
             }

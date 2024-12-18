@@ -24,6 +24,9 @@ function pesosargentinos($importe){
 function afipDir():string{
 	return dirname($_SERVER['DOCUMENT_ROOT']) . '/afip_resources/';
 }
+function afipWsDir():string{
+	return dirname($_SERVER['DOCUMENT_ROOT']) . '/afip_ws/';
+}
 
 function puntoVentaValido($puntoVenta){
 	if($puntoVenta == ''){
