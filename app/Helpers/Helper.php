@@ -1,10 +1,11 @@
 <?php
 
 use App\Models\VariableGlobal;
+use Illuminate\Support\Facades\Request;
 
 function variable_global($clave): string{
 	if(VariableGlobal::select('valor')->where('clave', $clave)->count() > 0 ){
-		return VariableGlobal::select('valor')->where('clave', $clave)->first()->valor;
+		return VariableGlobal::select('valor')->where('clave', $clave)->first()->valor ?? '';
 	}else{
 		return '';
 	}
@@ -22,4 +23,59 @@ function pesosargentinos($importe){
 
 function afipDir():string{
 	return dirname($_SERVER['DOCUMENT_ROOT']) . '/afip_resources/';
+}
+
+function puntoVentaValido($puntoVenta){
+	if($puntoVenta == ''){
+		return false;
+	}
+	if(!is_numeric($puntoVenta)){
+		return false;
+	}
+	return true;
+}
+
+function cuitGenerico(){ return 20111111112; }
+function idTipoFactura($tipoFactura){
+	$tipos = [
+		'A' => 1,
+		'B' => 6,
+		'C' => 11,
+		'FCEA' => 201,
+		'FCEB' => 206,
+		'FCEC' => 211,
+		'NCA' => 3,
+		'NCB' => 8,
+		'NCC' => 13,
+	];
+	if(!array_key_exists($tipoFactura, $tipos)){
+		return 0;
+	}
+	return $tipos[$tipoFactura];
+}
+
+function transformarArreglos($request){
+	$lineas = [];
+	
+	// Suponiendo que todos los arreglos tienen la misma cantidad de elementos, podemos usar count() para el ciclo.
+	$numLineas = count($request->cantidad);
+	// Iteramos sobre los índices de los arreglos
+	for ($i = 0; $i < $numLineas; $i++) {
+		// Solo agregar la línea si hay valores válidos (en caso de que sean nulos o vacíos, puedes agregar una condición)
+		if ($request->cantidad[$i] > 0) {
+			$lineas[] = [
+				"codigo" => $request->codigo[$i],
+				"descripcion" => $request->descripcion[$i],
+				"cantidad" => $request->cantidad[$i],
+				"unidad" => $request->unidadMedida[$i],
+				"precio_unitario" => $request->precioUnitario[$i],
+				"porcentaje_bonificacion" => $request->porcentajeBonificacion[$i],
+				"importe_bonificado" => $request->importeBonificado[$i],
+				"total" => $request->subtotal[$i]
+			];
+		}
+		
+	}
+	return $lineas;
+	
 }

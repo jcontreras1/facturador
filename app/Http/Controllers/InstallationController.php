@@ -35,6 +35,14 @@ class InstallationController extends Controller
             return redirect()->back();
         }
         
+        $filePath = afipDir() . 'key';  // Archivo donde se guardará la clave privada
+        
+        // Escribir la clave privada en el archivo
+        if (file_put_contents($filePath, $privateKey) === false) {
+            toast('Error al guardar la clave privada en el archivo', 'error');
+            return redirect()->back();
+        }
+        
         VariableGlobal::updateOrCreate([
             'clave' => 'AFIP_KEY',
             'descripcion' => 'Clave privada para AFIP'
@@ -74,8 +82,9 @@ class InstallationController extends Controller
         // Configuración del CSR (Solicitud de firma de certificado)
         $dn = [
             "C" => "AR",
-            "O" => strtoupper(variable_global('RAZON_SOCIAL')),
-            "CN" => implode('.', array_slice(explode('.', preg_replace('/^www\./', '', parse_url(config('app.url'), PHP_URL_HOST))), 0, -1)),
+            "O" => variable_global('RAZON_SOCIAL'),
+            // "CN" => implode('.', array_slice(explode('.', preg_replace('/^www\./', '', parse_url(config('app.url'), PHP_URL_HOST))), 0, -1)),
+            "CN" => variable_global('RAZON_SOCIAL'),
             "serialNumber" => "CUIT " .  preg_replace('/[^0-9]/', '', variable_global('CUIT_EMPRESA'))
         ];
         
@@ -117,9 +126,16 @@ class InstallationController extends Controller
             
             // Leer el contenido del archivo como texto
             $certContent = file_get_contents($certFile->getRealPath());
-
+            
             if (!$this->isValidCertificate($certContent)) {
                 toast('El certificado otorgado no es válido.', 'error');
+                return redirect()->back();
+            }
+            
+            if ($certFile->move(afipDir(), 'cert')) {
+                toast('Certificado cargado con éxito', 'success');
+            } else {
+                toast('Hubo un error al cargar el certificado', 'error');
                 return redirect()->back();
             }
 
@@ -138,40 +154,39 @@ class InstallationController extends Controller
             toast('No se encontró el certificado', 'error');
             return redirect()->back();
         }
-
-        toast('Certificado actualizado con éxito', 'success');
         return redirect()->back()->withInput();
         
     }
     
-        /**
-     * Verificar si el contenido del archivo es un certificado válido.
-     *
-     * @param string $certContent
-     * @return bool
-     */
+    /**
+    * Verificar si el contenido del archivo es un certificado válido.
+    *
+    * @param string $certContent
+    * @return bool
+    */
     private function isValidCertificate($certContent)
     {
         // Intentamos leer el certificado
         $cert = openssl_x509_read($certContent);
-
+        
         // Si no se pudo leer el certificado, es inválido
         if (!$cert) {
             return false;
         }
-
-        // Puedes añadir más validaciones si lo necesitas. Por ejemplo, comprobar si el certificado está caducado:
-        $certData = openssl_x509_parse($cert);
         
-        // Comprobar si la fecha de expiración del certificado es posterior a la fecha actual
-        $currentDate = time(); // Hora actual en formato timestamp
-        $expirationDate = $certData['validTo_time_t']; // Fecha de expiración del certificado en timestamp
-
-        if ($expirationDate < $currentDate) {
-            return false; // El certificado ha expirado
+        // Puedes añadir más validaciones si lo necesitas. Por ejemplo, comprobar si el certificado está caducado:
+            $certData = openssl_x509_parse($cert);
+            
+            // Comprobar si la fecha de expiración del certificado es posterior a la fecha actual
+            $currentDate = time(); // Hora actual en formato timestamp
+            $expirationDate = $certData['validTo_time_t']; // Fecha de expiración del certificado en timestamp
+            
+            if ($expirationDate < $currentDate) {
+                return false; // El certificado ha expirado
+            }
+            
+            return true; // El certificado es válido
         }
-
-        return true; // El certificado es válido
+        
     }
     
-}

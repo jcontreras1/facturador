@@ -15,6 +15,7 @@ class ItemFactura extends Model
         'precio_unitario',
         'alicuota_iva',
         'total',
+        'factura_id',
     ];
 
     public function factura()
