@@ -12,8 +12,9 @@ use Illuminate\Http\Request;
 class FacturacionController extends Controller
 {
     public function index(){
-        $facturas = Factura::paginate(10);
-        return view('facturacion.index')->with(compact('facturas'));
+        $facturas = Factura::orderBy('id', 'desc')->cursorPaginate(16);
+        return view('facturacion.index')->with(['facturas' => $facturas
+        ]);
     }
     public function createFacturaCGenerica(){
         return view('facturacion.createFacturaCGenerica');
