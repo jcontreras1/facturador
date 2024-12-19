@@ -11,6 +11,7 @@ use App\Models\ItemFactura;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
+use SimpleQRCode\QRCode;
 
 class FacturacionController extends Controller
 {
@@ -115,8 +116,9 @@ class FacturacionController extends Controller
     }
 
     public function descargarPdf(Factura $factura){
-        // return view('facturacion.pdf', ['factura' => $factura]);
+        
         $avatar = base64_encode(file_get_contents(variable_global('AVATAR')));
+        return view('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
         $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
         return $pdf->download('factura_'.$factura->nro_factura.'.pdf');
     }

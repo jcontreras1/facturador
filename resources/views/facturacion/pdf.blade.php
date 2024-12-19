@@ -206,6 +206,16 @@
         <p>Para consultar el estado de la factura ingrese a www.afip.gob.ar</p>
     </div>
 
+    <img src="data:image/png;base64,{{ 
+        base64_encode(QrCode::size(200)->generate(infoQRFactura($factura), 'php://output'))
+    }}" alt="QR" />
+
+
+    
+    
+
+
+
 </div>
 
 </body>

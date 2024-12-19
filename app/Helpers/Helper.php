@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Factura;
 use App\Models\VariableGlobal;
 use Illuminate\Support\Facades\Request;
 
@@ -80,5 +81,45 @@ function transformarArreglos($request){
 		
 	}
 	return $lineas;
+	
+}
+
+function infoQRFactura(Factura $factura){
+	// Datos de la factura
+	$fecha = $factura->created_at->format('Y-m-d');
+	$cuit = 0;//$factura->cliente->cuit;
+	$ptoVta = $factura->pto_venta;
+	$tipoCmp = idTipoFactura($factura->tipo_comprobante); // Función para determinar el tipo de comprobante
+	$nroCmp = $factura->nro_factura;
+	$importe = $factura->total;
+	$moneda = 'PES'; // Siempre será "PES" (Pesos)
+	$ctz = 1; // Cotización siempre es 1 (para PES)
+	$tipoDocRec = 0;//80; // Para tipo de documento del receptor (puede variar según el cliente)
+	$nroDocRec = 0;//$factura->cliente->nro_documento; // Número de documento del receptor (si corresponde)
+	$tipoCodAut = 'A'; // Tipo de código de autorización (autorizado)
+	$codAut = $factura->cae; // Código de autorización (CAE)
+	
+	$jsonData = [
+		"ver" => 1,
+		"fecha" => $fecha,
+		"cuit" => (int) $cuit,
+		"ptoVta" => (int) $ptoVta,
+		"tipoCmp" => (int) $tipoCmp,
+		"nroCmp" => (int) $nroCmp,
+		"importe" => (float) $importe,
+		"moneda" => $moneda,
+		"ctz" => (int) $ctz,
+		"tipoDocRec" => (int) $tipoDocRec,
+		"nroDocRec" => (int) $nroDocRec,
+		"tipoCodAut" => $tipoCodAut,
+		"codAut" => (int) $codAut
+	];
+	
+	$jsonString = json_encode($jsonData);
+	
+	$base64Json = base64_encode($jsonString);
+	
+	return "https://www.afip.gob.ar/fe/qr/?p=" . $base64Json;
+	
 	
 }

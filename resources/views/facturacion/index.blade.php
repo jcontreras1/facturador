@@ -37,6 +37,8 @@
             </tbody>
         </table>
         {{ $facturas->links() }}
+
+        
     </div>
     
     @push('scripts')
