@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Negocio;
 use App\Http\Controllers\Afip\Afip;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Facturas\FacturaCGenericaRequest;
+use App\Mail\NuevaFactura;
 use App\Models\Factura;
 use App\Models\ItemFactura;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 
 class FacturacionController extends Controller
 {
@@ -109,5 +112,18 @@ class FacturacionController extends Controller
             toast('Factura generada correctamente', 'success')->autoClose(1500);
         }
         return redirect()->route('facturacion.index');
+    }
+
+    public function descargarPdf(Factura $factura){
+        // return view('facturacion.pdf', ['factura' => $factura]);
+        $avatar = base64_encode(file_get_contents(variable_global('AVATAR')));
+        $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
+        return $pdf->download('factura_'.$factura->nro_factura.'.pdf');
+    }
+
+    public function enviarMail(Factura $factura, Request $request){
+        Mail::to($request->email)->send(new NuevaFactura($factura));
+        toast('Mail enviado correctamente', 'success')->autoClose(1500);
+        return redirect()->back();
     }
 }

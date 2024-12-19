@@ -12,6 +12,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('afip/makeCSR', [InstallationController::class, 'makeCSR'])->name('afip.makeCSR');
     
     Route::get('/facturacion', [FacturacionController::class, 'index'])->name('facturacion.index');
+    Route::get('/factura/{factura}/descargar/pdf', [FacturacionController::class, 'descargarPdf'])->name('facturacion.descargar.pdf');
+    Route::post('factura/{factura}/enviar/mail', [FacturacionController::class, 'enviarMail'])->name('facturacion.enviar.mail');
     Route::get('/factura/c', [FacturacionController::class, 'createFacturaCGenerica'])->name('facturacion.create.c');
     Route::post('/factura/c', [FacturacionController::class, 'facturaCGenerica'])->name('facturacion.store.c');
     

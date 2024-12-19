@@ -1,13 +1,13 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary mb-4 border-bottom">
     <div class="container">
-        <a class="navbar-brand" href="#">Navbar</a>
+        {{-- <a class="navbar-brand" href="#">Navbar</a> --}}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 fs-6">
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('dashboard') }}">{{ __('Home')}}</a>
+                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('dashboard') }}"><strong>{{ __('Home')}}</strong></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('clientes.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('clientes.index') }}">Clientes</a>
@@ -16,10 +16,13 @@
                     <a class="nav-link {{ request()->routeIs('items.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('items.index') }}">Servicios</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('facturacion.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('facturacion.index') }}">Facturación</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('config.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('config.index') }}">Configuraciones</a>
                 </li>
             </ul>
-            <ul class="navbar-nav ms-auto fs-5">
+            <ul class="navbar-nav ms-auto fs-6">
                 @guest
                 @if (Route::has('login'))
                 <li class="nav-item">
