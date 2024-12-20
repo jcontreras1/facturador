@@ -117,9 +117,8 @@ class FacturacionController extends Controller
 
     public function descargarPdf(Factura $factura){
         
-        $avatar = base64_encode(file_get_contents(variable_global('AVATAR')));
-        return view('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
-        $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
+        // return view('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
+        $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura]);
         return $pdf->download('factura_'.$factura->nro_factura.'.pdf');
     }
 

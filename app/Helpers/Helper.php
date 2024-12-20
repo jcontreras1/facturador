@@ -81,9 +81,7 @@ function transformarArreglos($request){
 		
 	}
 	return $lineas;
-	
 }
-
 function infoQRFactura(Factura $factura){
 	// Datos de la factura
 	$fecha = $factura->created_at->format('Y-m-d');
@@ -114,12 +112,18 @@ function infoQRFactura(Factura $factura){
 		"tipoCodAut" => $tipoCodAut,
 		"codAut" => (int) $codAut
 	];
-	
 	$jsonString = json_encode($jsonData);
-	
 	$base64Json = base64_encode($jsonString);
-	
 	return "https://www.afip.gob.ar/fe/qr/?p=" . $base64Json;
-	
-	
+}
+
+function imgBase64QRFactura(Factura $factura){
+	$qr = infoQRFactura($factura);
+	$qrCode = new \BaconQrCode\Writer(new \BaconQrCode\Renderer\ImageRenderer(
+		new \BaconQrCode\Renderer\RendererStyle\RendererStyle(150),
+		new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+	));
+	$svgDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrCode->writeString($qr));
+	return $svgDataUri;
+	// return $qr;
 }

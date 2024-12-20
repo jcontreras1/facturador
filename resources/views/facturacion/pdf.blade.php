@@ -10,12 +10,16 @@
             font-size: 12px;
             margin: 0;
             padding: 0;
+            height: 100%; /* Asegura que el cuerpo ocupe toda la altura de la página */
+            
         }
         .container {
-            width: 100%;
-            padding: 10px;
-            margin: 0 auto;
-        }
+    width: 100%;
+    padding: 10px;
+    margin: 0 auto;
+    min-height: 100vh; /* Ocupa toda la altura de la página */
+    position: relative; /* Necesario para usar posicionamiento absoluto en el pie */
+}
         .header {
             text-align: center;
             border-bottom: 2px solid #000;
@@ -89,134 +93,154 @@
         .header-table img {
             max-height: 64px;
         }
+        
+        /* Estilo para el cuadro de los totales */
+        .total-container {
+            border: 1px solid #000;
+            /* padding: 10px; */
+            margin-top: 20px;
+            width: 100%;
+            text-align: right;
+        }
+        .total-container p {
+            margin: 5px 0;
+            padding: 10px;
+        }
+        .total-container .total-label {
+            font-weight: bold;
+        }
+
+        .ultra-footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
     </style>
 </head>
 <body>
-
-<div class="container">
-
-    <!-- Encabezado de la factura -->
-    <table class="header-table">
-        <tr>
-            <td colspan="3" style="text-align: center; border-bottom: 2px solid #000; padding: 10px;">
-                <strong>ORIGINAL</strong>
-            </td>
-        </tr>
-        <tr>
-            <!-- Columna izquierda con logo o nombre -->
-            <td class="left-column">
-                @if(variable_global('AVATAR'))
-                    <img src="data:image/png;base64,{{ $avatar }}" alt="Logo">
-                @else
+    
+    <div class="container">
+        
+        <!-- Encabezado de la factura -->
+        <table class="header-table">
+            <tr>
+                <td colspan="3" style="text-align: center; border-bottom: 2px solid #000; padding: 10px;">
+                    <strong>ORIGINAL</strong>
+                </td>
+            </tr>
+            <tr>
+                <!-- Columna izquierda con logo o nombre -->
+                <td class="left-column">
+                    @if(variable_global('AVATAR'))
+                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(variable_global('AVATAR'))) }}" alt="Logo">
+                    @else
                     <h1>{{ strtoupper(variable_global('RAZON_SOCIAL')) }}</h1>
-                @endif
-            </td>
-            <!-- Columna del medio con tipo de comprobante -->
-            <td class="middle-column">
-                <table style="width: 100%; text-align: center;">
-                    <tr>
-                        <td><h1>{{ strtoupper($factura->tipo_comprobante) }}</h1></td>
-                    </tr>
-                    <tr>
-                        <td><strong>Cod. {{ str_pad(idTipoFactura($factura->tipo_comprobante), 2, '0', STR_PAD_LEFT) }}</strong></td>
-                    </tr>
-                </table>
-            </td>
-            <!-- Columna derecha con título FACTURA -->
-            <td class="right-column">
-                <h1>FACTURA</h1>
-            </td>
-        </tr>
-        <tr>
-            <td class="left-column" style="padding-left: 10px;">
-                <p><strong>Razón Social:</strong> Empresa XYZ S.A.</p>
-                <p><strong>Cuit:</strong> 20-12345678-9</p>
-                <p><strong>Dirección:</strong> Calle Ficticia 123, Ciudad, Argentina</p>
-                <p><strong>Condición ante el IVA:</strong> Responsable Inscripto</p>
-            </td>
-            <td></td>
-            <td class="right-column" style="padding-left: 10px;">
-                <p><strong>Punto de Venta: {{ str_pad(variable_global('PUNTO_VENTA'), 5, '0', STR_PAD_LEFT) }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Comp. Nro: {{ str_pad($factura->nro_factura, 8, '0', STR_PAD_LEFT) }}</strong></p>
-                <p><strong>Fecha de emisión:</strong> {{ $factura->created_at->format('d/m/Y') }}</p>
-                <p><strong>CUIT:</strong> {{ variable_global('CUIT_EMPRESA') }}</p>
-                <p><strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}</p>
-                <p><strong>Fecha de inicio de Actividades:</strong> --</p>
-            </td>
-        </tr>
-    </table>
-
-    <!-- Información de la factura -->
-    <div class="invoice-info">
-        <div class="invoice-header">
-            <div>
-                <p><strong>Fecha de emisión:</strong> 18/12/2024</p>
-                <p><strong>Tipo de comprobante:</strong> Factura A</p>
-                <p><strong>Número de factura:</strong> 0001-00012345</p>
-            </div>
-            <div>
-                <p><strong>Fecha de vencimiento:</strong> 18/01/2025</p>
-                <p><strong>CAE:</strong> 12345678901234</p>
-                <p><strong>CAE Vto:</strong> 18/12/2024</p>
-            </div>
+                    @endif
+                </td>
+                <!-- Columna del medio con tipo de comprobante -->
+                <td class="middle-column">
+                    <table style="width: 100%; text-align: center;">
+                        <tr>
+                            <td style="border: 1px solid black;"><h1>{{ strtoupper($factura->tipo_comprobante) }}</h1></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cod. {{ str_pad(idTipoFactura($factura->tipo_comprobante), 2, '0', STR_PAD_LEFT) }}</strong></td>
+                        </tr>
+                    </table>
+                </td>
+                <!-- Columna derecha con título FACTURA -->
+                <td class="right-column">
+                    <h1>FACTURA</h1>
+                </td>
+            </tr>
+            <tr>
+                <td class="left-column" style="padding-left: 10px;">
+                    <p>
+                        <strong>Razón Social:</strong> {{variable_global('RAZON_SOCIAL')}}<br>
+                        <strong>Cuit:</strong>{{variable_global('CUIT_EMPRESA')}}
+                    </p>
+                </td>
+                <td></td>
+                <td class="right-column" style="padding-left: 10px;">
+                    <p><strong>Punto de Venta: {{ str_pad(variable_global('PUNTO_VENTA'), 5, '0', STR_PAD_LEFT) }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Comp. Nro: {{ str_pad($factura->nro_factura, 8, '0', STR_PAD_LEFT) }}</strong></p>
+                    <p><strong>Fecha de emisión:</strong> {{ $factura->created_at->format('d/m/Y') }}</p>
+                    <p>
+                        <strong>CUIT:</strong> {{ variable_global('CUIT_EMPRESA') }}
+                        <br>
+                        <strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}
+                        <br>
+                        <strong>Fecha de inicio de Actividades:</strong> --
+                    </p>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Tabla de productos -->
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>U. Medida</th>
+                    <th>Precio Unit.</th>
+                    <th>% Bonif.</th>
+                    <th>Imp. Bonif.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($factura->items as $item)  
+                <tr>
+                    <td>{{$item->codigo}}</td>
+                    <td>{{$item->descripcion}}</td>
+                    <td>{{$item->cantidad}}</td>
+                    <td>{{$item->unidad}}</td>
+                    <td>{{pesosargentinos($item->precio_unitario)}}</td>
+                    <td>{{$item->porcentaje_bonificacion}}</td>
+                    <td>{{pesosargentinos($item->importe_bonificado)}}</td>
+                    <td>{{pesosargentinos($item->total)}}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        
+        <!-- Pie de la factura -->
+        <!-- Total de la factura en un cuadro -->
+        <div class="ultra-footer">
+        <div class="total-container">
+            <p>
+                <span class="total-label">Subtotal:</span><span class="total-value">${{pesosargentinos($factura->total_neto)}}</span>
+                <br>
+                <span class="total-label">Importe otros Tributos:</span><span class="total-value">${{pesosargentinos($factura->total_iva)}}</span>
+                <br>
+                <span class="total-label">Importe total:</span><span class="total-value">${{pesosargentinos($factura->total)}}</span>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 25%; text-align: left;">
+                        <img src="{!! imgBase64QRFactura($factura) !!}" alt="QR" />
+                    </td>
+                    <td style="width: 40%; text-align: left;">
+                        <img width="70" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
+                        <br>
+                        Comprobante autorizado
+                    </td>
+                    <td style="width: 35%; text-align: right;">
+                        <strong>CAE Nº: </strong> {{$factura->cae}}<br>
+                        <strong>Fecha de Vto. de CAE: </strong> {{$factura->vto_cae}}<br>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
         </div>
     </div>
-
-    <!-- Tabla de productos -->
-    <table class="item-table">
-        <thead>
-            <tr>
-                <th>Cantidad</th>
-                <th>Descripción</th>
-                <th>Precio Unitario</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>Producto A</td>
-                <td>$500.00</td>
-                <td>$500.00</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>Producto B</td>
-                <td>$300.00</td>
-                <td>$600.00</td>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>Producto C</td>
-                <td>$150.00</td>
-                <td>$150.00</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Total de la factura -->
-    <div class="total">
-        <p><strong>Subtotal:</strong> $1250.00</p>
-        <p><strong>I.V.A. (21%):</strong> $262.50</p>
-        <p><strong>Total a Pagar:</strong> $1512.50</p>
-    </div>
-
-    <!-- Pie de la factura -->
-    <div class="footer">
-        <p>Este documento no es un comprobante fiscal autorizado. Generado a través de AFIP.</p>
-        <p>Para consultar el estado de la factura ingrese a www.afip.gob.ar</p>
-    </div>
-
-    <img src="data:image/png;base64,{{ 
-        base64_encode(QrCode::size(200)->generate(infoQRFactura($factura), 'php://output'))
-    }}" alt="QR" />
-
-
     
-    
-
-
-
-</div>
-
 </body>
 </html>

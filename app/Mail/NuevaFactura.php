@@ -21,8 +21,7 @@ class NuevaFactura extends Mailable
         public Factura $factura,
     )
     {
-        $avatar = base64_encode(file_get_contents(variable_global('AVATAR')));
-        $this->pdf = PDF::loadView('facturacion.pdf', ['factura' => $this->factura, 'avatar' => $avatar]);
+        $this->pdf = PDF::loadView('facturacion.pdf', ['factura' => $this->factura]);
     }
         
         /**
