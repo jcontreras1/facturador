@@ -100,6 +100,7 @@
             padding: 10px;
             margin-top: 20px;
             width: 100%;
+            font-size: 10px; 
         }
         /* Estilo para el cuadro de los totales */
         .total-container {
@@ -186,18 +187,11 @@
         </table>
 
         <div class="bordered-container">
-            <table>
-                <tr>
-                    <td>
-                        <strong>CUIT: </strong> {{$factura->cuit}}
-                        <strong>Domicilio: </strong> {{$factura->domicilio}}
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <strong>Ape. y Nombre o Razón Social: </strong> {{$factura->razon_social}}
-                    </td>
-                </tr>
+          
+                        <strong>CUIT: </strong> {{$factura->cuit}}<br>
+                        
+                        <strong>Domicilio: </strong> {{$factura->domicilio}}    <br>
+                        <strong>Apellido y Nombre o Razón Social: </strong> {{$factura->razon_social}}<br>
         </div>
         
         <!-- Tabla de productos -->
@@ -235,11 +229,11 @@
         <div class="ultra-footer">
             <div class="total-container">
                 <p>
-                    <span class="total-label">Subtotal:</span><span class="total-value">${{pesosargentinos($factura->total_neto)}}</span>
+                    <span class="total-label">Subtotal:</span><span class="total-value"> ${{pesosargentinos($factura->total_neto)}}</span>
                     <br>
-                    <span class="total-label">Importe otros Tributos:</span><span class="total-value">${{pesosargentinos($factura->total_iva)}}</span>
+                    <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($factura->total_iva)}}</span>
                     <br>
-                    <span class="total-label">Importe total:</span><span class="total-value">${{pesosargentinos($factura->total)}}</span>
+                    <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($factura->total)}}</span>
                 </p>
             </div>
             

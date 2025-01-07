@@ -50,12 +50,12 @@
                         {{-- Razon social autocompletada --}}
                         <div class="col-12 col-md-6">
                             <label for="razonSocial">Razón Social <i id="spinnerRazonSocial" class="fas fa-spinner fa-spin d-none"></i></label>
-                            <input type="text" class="form-control" readonly disabled name="razonSocial" id="razonSocial">
+                            <input type="text" class="form-control" readonly name="razonSocial" id="razonSocial">
                         </div>
                         {{-- Domicilio --}}
                         <div class="col-12 col-md-6">
                             <label for="domicilio">Domicilio <i id="spinnerDomicilio" class="fas fa-spinner fa-spin d-none"></i></label>
-                            <input type="text" class="form-control" readonly disabled name="domicilio" id="domicilio">
+                            <input type="text" class="form-control" readonly name="domicilio" id="domicilio">
                         </div>
                     </div>
                 </div>
@@ -88,80 +88,127 @@
         const formulario = document.getElementById('form');
         const unidadesDeMedida = ['unidad', 'metros', 'kilos', 'litros'];
         const documento = document.getElementById('documento');
+        const tipoDocuemnto = document.getElementById('tipoDocumento');
         
+        const tipoCliente = tipoDocumento.value;
+        if (tipoCliente === '99') { 
+            //cons final
+            documento.disabled = true;
+            documento.value = ''; 
+        } else {
+            documento.disabled = false;
+        }
         
-        // Añadir el evento focusout al campo de documento
-        documento.addEventListener('focusout', async function() {
-            const docValue = documento.value.trim(); // Obtener el valor del documento, limpiando espacios
-            if(docValue === '') return; // Si el documento está vacío, no hacer nada
-            document.getElementById('spinnerRazonSocial').classList.remove('d-none');
-            document.getElementById('spinnerDomicilio').classList.remove('d-none');
-            try {
-                // Realizar la solicitud HTTP a la API
-                const response = await axios.get(`/api/contribuyente/${docValue}`);
-                const { domicilio, razonSocial } = response.data;
-                // Mostrar los datos en los inputs correspondientes
-                document.getElementById('razonSocial').value = razonSocial;
-                document.getElementById('domicilio').value = domicilio;
-            } catch (error) {
-                // Manejar cualquier error que pueda ocurrir (ej. usuario no encontrado)
-                if(error.response.status === 404) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '¡Error!',
-                        text: 'No se encontró el usuario con el documento ingresado.',
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '¡Error!',
-                        text: 'Ocurrió un error al buscar el usuario. Por favor, intente nuevamente.',
-                    });
-                }
-            } finally {
-                // Ocultar los spinners después de que la solicitud se haya completado
-                document.getElementById('spinnerRazonSocial').classList.add('d-none');
-                document.getElementById('spinnerDomicilio').classList.add('d-none');
+        tipoDocumento.addEventListener('change', function() {
+            const tipoCliente = tipoDocumento.value;
+            if (tipoCliente === '99') { // "Consumidor Final"
+            documento.disabled = true;
+            documento.value = '';  // Limpiar el campo
+        } else {
+            documento.disabled = false;
+        }
+    });
+    
+    
+    // Añadir el evento focusout al campo de documento
+    documento.addEventListener('focusout', async function() {
+        document.getElementById('razonSocial').value = '';
+        document.getElementById('domicilio').value = '';
+        const docValue = documento.value.trim(); // Obtener el valor del documento, limpiando espacios
+        if(docValue === '') return; // Si el documento está vacío, no hacer nada
+        
+        //validar si es un cuit valido
+        let tipoDoc = esDniOcuity(docValue);
+        if(tipoDocumento.value == 80 || tipoDocumento.value == 86){
+            if(tipoDoc == 'DNI'){
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: 'El CUIT ingresado no es válido.',
+                });
+                return;
             }
-        });
-        
-        let lineas = [];
-        
-        // Función para actualizar el total de la factura
-        function actualizarTotal() {
-            const total = lineas.reduce((acc, linea) => acc + linea.subtotal, 0);
-            importeTotal.textContent  = total.toFixed(2);
-            importeTotalEscondido.value = total.toFixed(2);
+        } else if(tipoDocumento.value == 96){
+            if(tipoDoc == 'CUIT'){
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: 'El DNI ingresado no es válido.',
+                });
+                return;
+            }
         }
         
-        // Función para calcular el subtotal y el importe bonificado
-        function calcularSubtotal(idLinea) {
-            const linea = lineas[idLinea];
-            
-            linea.codigo = document.getElementById(`codigo${idLinea}`).value;
-            linea.descripcion = document.getElementById(`descripcion${idLinea}`).value;
-            linea.cantidad = parseFloat(document.getElementById(`cantidad${idLinea}`).value) || 0;
-            linea.unidadDeMedida = document.getElementById(`unidadDeMedida${idLinea}`).value;
-            linea.precioUnitario = parseFloat(document.getElementById(`precioUnitario${idLinea}`).value) || 0;
-            
-            const subtotal = linea.precioUnitario * linea.cantidad - linea.importeBonificado;
-            linea.subtotal = subtotal;
-            
-            document.getElementById(`subtotal${idLinea}`).value = subtotal.toFixed(2);
-            
-            actualizarTotal();
-        }
         
-        // Función para agregar una nueva línea
-        function agregarLinea() {
-            const idLinea = lineas.length;
-            
-            // Crear la fila HTML
-            const div = document.createElement('div');
-            div.classList.add('linea-detalle', 'row', 'mb-3');
-            div.setAttribute('data-id', idLinea);
-            
-            div.innerHTML = `
+        
+        document.getElementById('spinnerRazonSocial').classList.remove('d-none');
+        document.getElementById('spinnerDomicilio').classList.remove('d-none');
+        try {
+            // Realizar la solicitud HTTP a la API
+            const response = await axios.get(`/api/contribuyente/${docValue}`);
+            const { domicilio, razonSocial } = response.data;
+            // Mostrar los datos en los inputs correspondientes
+            document.getElementById('razonSocial').value = razonSocial;
+            document.getElementById('domicilio').value = domicilio;
+        } catch (error) {
+            // Manejar cualquier error que pueda ocurrir (ej. usuario no encontrado)
+            if(error.response.status === 404) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: 'No se encontró el usuario con el documento ingresado.',
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: 'Ocurrió un error al buscar el usuario. Por favor, intente nuevamente.',
+                });
+            }
+        } finally {
+            // Ocultar los spinners después de que la solicitud se haya completado
+            document.getElementById('spinnerRazonSocial').classList.add('d-none');
+            document.getElementById('spinnerDomicilio').classList.add('d-none');
+        }
+    });
+    
+    let lineas = [];
+    
+    // Función para actualizar el total de la factura
+    function actualizarTotal() {
+        const total = lineas.reduce((acc, linea) => acc + linea.subtotal, 0);
+        importeTotal.textContent  = total.toFixed(2);
+        importeTotalEscondido.value = total.toFixed(2);
+    }
+    
+    // Función para calcular el subtotal y el importe bonificado
+    function calcularSubtotal(idLinea) {
+        const linea = lineas[idLinea];
+        
+        linea.codigo = document.getElementById(`codigo${idLinea}`).value;
+        linea.descripcion = document.getElementById(`descripcion${idLinea}`).value;
+        linea.cantidad = parseFloat(document.getElementById(`cantidad${idLinea}`).value) || 0;
+        linea.unidadDeMedida = document.getElementById(`unidadDeMedida${idLinea}`).value;
+        linea.precioUnitario = parseFloat(document.getElementById(`precioUnitario${idLinea}`).value) || 0;
+        
+        const subtotal = linea.precioUnitario * linea.cantidad - linea.importeBonificado;
+        linea.subtotal = subtotal;
+        
+        document.getElementById(`subtotal${idLinea}`).value = subtotal.toFixed(2);
+        
+        actualizarTotal();
+    }
+    
+    // Función para agregar una nueva línea
+    function agregarLinea() {
+        const idLinea = lineas.length;
+        
+        // Crear la fila HTML
+        const div = document.createElement('div');
+        div.classList.add('linea-detalle', 'row', 'mb-3');
+        div.setAttribute('data-id', idLinea);
+        
+        div.innerHTML = `
             <div class="col-12 col-md-1">
                 <label for="codigo${idLinea}">Código</label>
                 <input type="text" class="form-control form-control-sm" name="codigo[]" maxlength="4" id="codigo${idLinea}" data-id="${idLinea}" oninput="calcularSubtotal(${idLinea})">
@@ -200,76 +247,91 @@
                 <button type="button" class="btn btn-danger bnt-sm" onclick="eliminarLinea(${idLinea})"><i class="fas fa-trash-alt"></i></button>
             </div>
         `;
-            
-            // Agregar la línea al contenedor de líneas
-            lineasDetalleContainer.appendChild(div);
-            
-            // Agregar la nueva línea al arreglo
-            lineas.push({
-                id: idLinea,
-                codigo: '',
-                descripcion: '',
-                cantidad: 1,
-                unidadDeMedida: 'unidad',
-                precioUnitario: 0,
-                bonificacion: 0,
-                importeBonificado: 0,
-                subtotal: 0
-            });
-        }
         
+        // Agregar la línea al contenedor de líneas
+        lineasDetalleContainer.appendChild(div);
         
-        
-        // Función para calcular el importe bonificado
-        function calcularBonificacion(idLinea) {
-            const linea = lineas[idLinea];
-            
-            linea.bonificacion = parseFloat(document.getElementById(`bonificacion${idLinea}`).value) || 0;
-            linea.importeBonificado = (linea.precioUnitario * linea.cantidad) * (linea.bonificacion / 100);
-            
-            document.getElementById(`importeBonificado${idLinea}`).value = linea.importeBonificado.toFixed(2);
-            
-            calcularSubtotal(idLinea);
-        }
-        
-        // Función para eliminar una línea
-        function eliminarLinea(idLinea) {
-            lineas.splice(idLinea, 1); // Eliminar la línea del arreglo de líneas
-            document.querySelector(`.linea-detalle[data-id="${idLinea}"]`).remove();
-            actualizarTotal();
-        }
-        
-        // Agregar una línea cuando se hace clic en el botón
-        agregarLineaBtn.addEventListener('click', agregarLinea);
-        // });
-        
-        // Validar que haya al menos una línea de detalle antes de enviar el formulario
-        formulario.addEventListener('submit', function(event) {
-            if (lineas.length === 0) {
-                event.preventDefault(); // Evitar el envío del formulario
-                Swal.fire({
-                    icon: 'error',
-                    title: '¡Error!',
-                    text: 'Debe haber al menos una línea de detalle en la factura.',
-                });
-                return;
-            }
-            
-            //chequear el valor total para que no sea 0
-            if (importeTotalEscondido.value == 0) {
-                event.preventDefault(); // Evitar el envío del formulario
-                Swal.fire({
-                    icon: 'error',
-                    title: '¡Error!',
-                    text: 'El total de la factura no puede ser 0.',
-                });
-                return;
-            }
-            
+        // Agregar la nueva línea al arreglo
+        lineas.push({
+            id: idLinea,
+            codigo: '',
+            descripcion: '',
+            cantidad: 1,
+            unidadDeMedida: 'unidad',
+            precioUnitario: 0,
+            bonificacion: 0,
+            importeBonificado: 0,
+            subtotal: 0
         });
+    }
+    
+    function esDniOcuity(numero) {
+        // Eliminar guiones y otros caracteres no numéricos
+        const numeroLimpiado = numero.replace(/[^0-9]/g, '');
         
+        // Verificar si es un DNI o CUIT
+        if (numeroLimpiado.length === 8) {
+            // 8 dígitos -> DNI
+            return 'DNI';
+        } else if (numeroLimpiado.length === 11) {
+            // 11 dígitos -> CUIT
+            return 'CUIT';
+        } else {
+            // Si no es ni 8 ni 11 dígitos
+            return 'Formato inválido';
+        }
+    }    
+    
+    // Función para calcular el importe bonificado
+    function calcularBonificacion(idLinea) {
+        const linea = lineas[idLinea];
         
+        linea.bonificacion = parseFloat(document.getElementById(`bonificacion${idLinea}`).value) || 0;
+        linea.importeBonificado = (linea.precioUnitario * linea.cantidad) * (linea.bonificacion / 100);
         
-    </script>
-    @endpush
+        document.getElementById(`importeBonificado${idLinea}`).value = linea.importeBonificado.toFixed(2);
+        
+        calcularSubtotal(idLinea);
+    }
+    
+    // Función para eliminar una línea
+    function eliminarLinea(idLinea) {
+        lineas.splice(idLinea, 1); // Eliminar la línea del arreglo de líneas
+        document.querySelector(`.linea-detalle[data-id="${idLinea}"]`).remove();
+        actualizarTotal();
+    }
+    
+    // Agregar una línea cuando se hace clic en el botón
+    agregarLineaBtn.addEventListener('click', agregarLinea);
+    // });
+    
+    // Validar que haya al menos una línea de detalle antes de enviar el formulario
+    formulario.addEventListener('submit', function(event) {
+        if (lineas.length === 0) {
+            event.preventDefault(); // Evitar el envío del formulario
+            Swal.fire({
+                icon: 'error',
+                title: '¡Error!',
+                text: 'Debe haber al menos una línea de detalle en la factura.',
+            });
+            return;
+        }
+        
+        //chequear el valor total para que no sea 0
+        if (importeTotalEscondido.value == 0) {
+            event.preventDefault(); // Evitar el envío del formulario
+            Swal.fire({
+                icon: 'error',
+                title: '¡Error!',
+                text: 'El total de la factura no puede ser 0.',
+            });
+            return;
+        }
+        
+    });
+    
+    
+    
+</script>
+@endpush
 </x-app-layout>

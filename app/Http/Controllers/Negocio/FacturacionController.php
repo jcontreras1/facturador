@@ -24,15 +24,9 @@ class FacturacionController extends Controller
         return view('facturacion.createFacturaCGenerica');
     }
     
-    /**
-    * Crear factura C de monotributista
-    * @param \Illuminate\Http\Request $request
-    * @return void
-    */
     public function facturaCGenerica(FacturaCGenericaRequest $request){
         
         $detalle = transformarArreglos($request);
-        
         $factura = Factura::create(array_merge( $request->all(), [
             'total' => $request->importeTotal,
             'total_neto' => $request->importeTotal,
@@ -41,6 +35,7 @@ class FacturacionController extends Controller
             'tipo_comprobante' => 'C',
             'razon_social' => $request->razonSocial,
             'domicilio' => $request->domicilio,
+            'cuit' => $request->documento,
             ])
         );
         
@@ -122,7 +117,7 @@ class FacturacionController extends Controller
 
     public function descargarPdf(Factura $factura){
         
-        return view('facturacion.pdf', ['factura' => $factura]);
+        // return view('facturacion.pdf', ['factura' => $factura]);
         $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura]);
         return $pdf->download('factura_'.$factura->nro_factura.'.pdf');
     }

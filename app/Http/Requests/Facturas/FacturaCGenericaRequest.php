@@ -28,6 +28,8 @@ class FacturaCGenericaRequest extends FormRequest
             // 'detalle' => 'required|array',
             'tipoDocuemnto' => 'required|numeric',
             'documento' => 'present|nullable|numeric',
+            'razonSocial' => 'string|nullable',
+            'domicilio' => 'string|nullable',
         ];
     }
 }
