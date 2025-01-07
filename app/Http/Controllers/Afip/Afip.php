@@ -132,6 +132,18 @@ class Afip {
                 case 'FacturaElectronica':
                 $ret = new FacturaElectronica($this);
                 break;
+
+                case 'PadronAlcance4':
+                    $ret = new PadronAlcance4($this);
+                    break;
+
+                case 'PadronAlcance5':
+                    $ret = new PadronAlcance5($this);
+                    break;
+                    
+                case 'PadronAlcance10':
+                    $ret = new PadronAlcance10($this);
+                    break;
                 
                 default:
                 throw new Exception("Propiedad no definida", 1);

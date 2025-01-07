@@ -3,6 +3,7 @@
 use App\Models\Factura;
 use App\Models\VariableGlobal;
 use Illuminate\Support\Facades\Request;
+use Carbon\Carbon;
 
 function variable_global($clave): string{
 	if(VariableGlobal::select('valor')->where('clave', $clave)->count() > 0 ){
@@ -126,4 +127,28 @@ function imgBase64QRFactura(Factura $factura){
 	$svgDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrCode->writeString($qr));
 	return $svgDataUri;
 	// return $qr;
+}
+
+function transformarFechaAfip($fecha_afip){
+	// Crear una instancia de Carbon a partir del formato Ymd
+	$fecha = Carbon::createFromFormat('Ymd', $fecha_afip);
+	
+	// Convertirla al formato Y-m-d
+	return $fecha->format('Y-m-d'); 
+}
+
+function datosContribuyente($contribuyenteObject){
+	$razonSocial = "";
+	if($contribuyenteObject->tipoPersona == 'FISICA'){
+		$razonSocial = $contribuyenteObject->apellido . ', ' . $contribuyenteObject->nombre;
+	}else{
+		$razonSocial = $contribuyenteObject->razonSocial;
+	}
+	return [
+		'razonSocial' => $razonSocial,
+		'domicilio' => 
+			$contribuyenteObject->domicilio[count($contribuyenteObject->domicilio) - 1]->direccion . ', ' . 
+			$contribuyenteObject->domicilio[count($contribuyenteObject->domicilio) - 1]->localidad . ', ' . 
+			$contribuyenteObject->domicilio[count($contribuyenteObject->domicilio) - 1]->descripcionProvincia,
+	];
 }

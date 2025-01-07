@@ -14,12 +14,12 @@
             
         }
         .container {
-    width: 100%;
-    padding: 10px;
-    margin: 0 auto;
-    min-height: 100vh; /* Ocupa toda la altura de la página */
-    position: relative; /* Necesario para usar posicionamiento absoluto en el pie */
-}
+            width: 100%;
+            padding: 10px;
+            margin: 0 auto;
+            min-height: 100vh; /* Ocupa toda la altura de la página */
+            position: relative; /* Necesario para usar posicionamiento absoluto en el pie */
+        }
         .header {
             text-align: center;
             border-bottom: 2px solid #000;
@@ -94,10 +94,16 @@
             max-height: 64px;
         }
         
+        /* Estilo generico bordeado */
+        .bordered-container {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-top: 20px;
+            width: 100%;
+        }
         /* Estilo para el cuadro de los totales */
         .total-container {
             border: 1px solid #000;
-            /* padding: 10px; */
             margin-top: 20px;
             width: 100%;
             text-align: right;
@@ -109,7 +115,7 @@
         .total-container .total-label {
             font-weight: bold;
         }
-
+        
         .ultra-footer {
             position: absolute;
             bottom: 0;
@@ -158,8 +164,10 @@
             <tr>
                 <td class="left-column" style="padding-left: 10px;">
                     <p>
-                        <strong>Razón Social:</strong> {{variable_global('RAZON_SOCIAL')}}<br>
-                        <strong>Cuit:</strong>{{variable_global('CUIT_EMPRESA')}}
+                        <strong>Razón Social: </strong> {{variable_global('RAZON_SOCIAL')}}<br>
+                        <strong>Domicilio Comercial: </strong> {{variable_global('DOMICILIO_FISCAL')}}<br>
+                        <strong>Cuit: </strong>{{variable_global('CUIT_EMPRESA')}}<br>
+                        <strong>Condición frente al IVA: </strong>{{variable_global('CONDICION_IVA')}}
                     </p>
                 </td>
                 <td></td>
@@ -176,6 +184,21 @@
                 </td>
             </tr>
         </table>
+
+        <div class="bordered-container">
+            <table>
+                <tr>
+                    <td>
+                        <strong>CUIT: </strong> {{$factura->cuit}}
+                        <strong>Domicilio: </strong> {{$factura->domicilio}}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Ape. y Nombre o Razón Social: </strong> {{$factura->razon_social}}
+                    </td>
+                </tr>
+        </div>
         
         <!-- Tabla de productos -->
         <table class="item-table">
@@ -210,35 +233,39 @@
         <!-- Pie de la factura -->
         <!-- Total de la factura en un cuadro -->
         <div class="ultra-footer">
-        <div class="total-container">
-            <p>
-                <span class="total-label">Subtotal:</span><span class="total-value">${{pesosargentinos($factura->total_neto)}}</span>
-                <br>
-                <span class="total-label">Importe otros Tributos:</span><span class="total-value">${{pesosargentinos($factura->total_iva)}}</span>
-                <br>
-                <span class="total-label">Importe total:</span><span class="total-value">${{pesosargentinos($factura->total)}}</span>
-            </p>
-        </div>
-        
-        <div class="footer">
-            <table style="width: 100%;">
-                <tr>
-                    <td style="width: 25%; text-align: left;">
-                        <img src="{!! imgBase64QRFactura($factura) !!}" alt="QR" />
-                    </td>
-                    <td style="width: 40%; text-align: left;">
-                        <img width="70" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
-                        <br>
-                        Comprobante autorizado
-                    </td>
-                    <td style="width: 35%; text-align: right;">
-                        <strong>CAE Nº: </strong> {{$factura->cae}}<br>
-                        <strong>Fecha de Vto. de CAE: </strong> {{$factura->vto_cae}}<br>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        
+            <div class="total-container">
+                <p>
+                    <span class="total-label">Subtotal:</span><span class="total-value">${{pesosargentinos($factura->total_neto)}}</span>
+                    <br>
+                    <span class="total-label">Importe otros Tributos:</span><span class="total-value">${{pesosargentinos($factura->total_iva)}}</span>
+                    <br>
+                    <span class="total-label">Importe total:</span><span class="total-value">${{pesosargentinos($factura->total)}}</span>
+                </p>
+            </div>
+            
+            <div class="footer">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 25%; text-align: left;">
+                            <img src="{!! imgBase64QRFactura($factura) !!}" alt="QR" />
+                        </td>
+                        <td style="width: 40%; text-align: left;">
+                            <img width="70" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
+                            <br>
+                            Comprobante autorizado
+                        </td>
+                        <td style="width: 35%; text-align: right;">
+                            <strong>CAE Nº: </strong> {{$factura->cae}}<br>
+                            
+                            <strong>Fecha de Vto. de CAE: </strong> 
+                            @if($factura->fecha_vencimiento_cae)
+                            {{Carbon\Carbon::parse($factura->fecha_vencimiento_cae)->format('d/m/Y')}}<br>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
         </div>
     </div>
     

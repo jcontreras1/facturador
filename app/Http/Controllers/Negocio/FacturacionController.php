@@ -23,6 +23,7 @@ class FacturacionController extends Controller
     public function createFacturaCGenerica(){
         return view('facturacion.createFacturaCGenerica');
     }
+    
     /**
     * Crear factura C de monotributista
     * @param \Illuminate\Http\Request $request
@@ -37,7 +38,9 @@ class FacturacionController extends Controller
             'total_neto' => $request->importeTotal,
             'created_by' => auth()->user()->id,
             'punto_venta' => variable_global('PUNTO_VENTA'),
-            'tipo_comprobante' => 'C'
+            'tipo_comprobante' => 'C',
+            'razon_social' => $request->razonSocial,
+            'domicilio' => $request->domicilio,
             ])
         );
         
@@ -100,16 +103,18 @@ class FacturacionController extends Controller
         }
         catch(\Exception $e)        {
             alert('Error al intentar crear la factura electrónica.', $e->getMessage() , 'error');
+            $factura->delete();
             return redirect()->back()->withInput();
         }
         
         if($afipResponse->FeDetResp && $afipResponse->FeDetResp->FECAEDetResponse->Resultado == 'A'){
             $factura->update([
                 'cae' => $afipResponse->FeDetResp->FECAEDetResponse->CAE, 
-                // 'caeVto' => $afipResponse['vto'],
+                'fecha_vencimiento_cae' => transformarFechaAfip($afipResponse->FeDetResp->FECAEDetResponse->CAEFchVto),
                 'enviada_afip' => true,
                 
             ]);
+            // dd($afipResponse);
             toast('Factura generada correctamente', 'success')->autoClose(1500);
         }
         return redirect()->route('facturacion.index');
@@ -117,7 +122,7 @@ class FacturacionController extends Controller
 
     public function descargarPdf(Factura $factura){
         
-        // return view('facturacion.pdf', ['factura' => $factura, 'avatar' => $avatar]);
+        return view('facturacion.pdf', ['factura' => $factura]);
         $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura]);
         return $pdf->download('factura_'.$factura->nro_factura.'.pdf');
     }

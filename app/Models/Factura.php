@@ -23,6 +23,10 @@ class Factura extends Model
         'observaciones',
         'enviada_afip',
         'cae',
+        'fecha_vencimiento_cae',
+        'razon_social',
+        'domicilio',
+        'cuit',
     ];
 
     public function cliente()

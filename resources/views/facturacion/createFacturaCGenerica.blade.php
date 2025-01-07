@@ -47,6 +47,16 @@
                             <label for="documento">DNI/CUIL/CUIT</label>
                             <input type="number" class="form-control" name="documento" id="documento">
                         </div>
+                        {{-- Razon social autocompletada --}}
+                        <div class="col-12 col-md-6">
+                            <label for="razonSocial">Razón Social <i id="spinnerRazonSocial" class="fas fa-spinner fa-spin d-none"></i></label>
+                            <input type="text" class="form-control" readonly disabled name="razonSocial" id="razonSocial">
+                        </div>
+                        {{-- Domicilio --}}
+                        <div class="col-12 col-md-6">
+                            <label for="domicilio">Domicilio <i id="spinnerDomicilio" class="fas fa-spinner fa-spin d-none"></i></label>
+                            <input type="text" class="form-control" readonly disabled name="domicilio" id="domicilio">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -60,11 +70,11 @@
             </div>
             
             <button type="submit" class="btn btn-success mt-3 float-end">Emitir Comprobante </button>
-
-
-        <div class="mt-3">
-            <h4>Total: $<span id="importeTotal">0.00</span></h4>
-        </div>
+            
+            
+            <div class="mt-3">
+                <h4>Total: $<span id="importeTotal">0.00</span></h4>
+            </div>
         </form>
         
     </div>
@@ -77,6 +87,43 @@
         const importeTotalEscondido = document.getElementById('importeTotalEscondido');
         const formulario = document.getElementById('form');
         const unidadesDeMedida = ['unidad', 'metros', 'kilos', 'litros'];
+        const documento = document.getElementById('documento');
+        
+        
+        // Añadir el evento focusout al campo de documento
+        documento.addEventListener('focusout', async function() {
+            const docValue = documento.value.trim(); // Obtener el valor del documento, limpiando espacios
+            if(docValue === '') return; // Si el documento está vacío, no hacer nada
+            document.getElementById('spinnerRazonSocial').classList.remove('d-none');
+            document.getElementById('spinnerDomicilio').classList.remove('d-none');
+            try {
+                // Realizar la solicitud HTTP a la API
+                const response = await axios.get(`/api/contribuyente/${docValue}`);
+                const { domicilio, razonSocial } = response.data;
+                // Mostrar los datos en los inputs correspondientes
+                document.getElementById('razonSocial').value = razonSocial;
+                document.getElementById('domicilio').value = domicilio;
+            } catch (error) {
+                // Manejar cualquier error que pueda ocurrir (ej. usuario no encontrado)
+                if(error.response.status === 404) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Error!',
+                        text: 'No se encontró el usuario con el documento ingresado.',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Error!',
+                        text: 'Ocurrió un error al buscar el usuario. Por favor, intente nuevamente.',
+                    });
+                }
+            } finally {
+                // Ocultar los spinners después de que la solicitud se haya completado
+                document.getElementById('spinnerRazonSocial').classList.add('d-none');
+                document.getElementById('spinnerDomicilio').classList.add('d-none');
+            }
+        });
         
         let lineas = [];
         
@@ -195,32 +242,32 @@
         // Agregar una línea cuando se hace clic en el botón
         agregarLineaBtn.addEventListener('click', agregarLinea);
         // });
-
-            // Validar que haya al menos una línea de detalle antes de enviar el formulario
-    formulario.addEventListener('submit', function(event) {
-        if (lineas.length === 0) {
-            event.preventDefault(); // Evitar el envío del formulario
-            Swal.fire({
-                icon: 'error',
-                title: '¡Error!',
-                text: 'Debe haber al menos una línea de detalle en la factura.',
-            });
-            return;
-        }
-
-        //chequear el valor total para que no sea 0
-        if (importeTotalEscondido.value == 0) {
-            event.preventDefault(); // Evitar el envío del formulario
-            Swal.fire({
-                icon: 'error',
-                title: '¡Error!',
-                text: 'El total de la factura no puede ser 0.',
-            });
-            return;
-        }
-
-    });
-
+        
+        // Validar que haya al menos una línea de detalle antes de enviar el formulario
+        formulario.addEventListener('submit', function(event) {
+            if (lineas.length === 0) {
+                event.preventDefault(); // Evitar el envío del formulario
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: 'Debe haber al menos una línea de detalle en la factura.',
+                });
+                return;
+            }
+            
+            //chequear el valor total para que no sea 0
+            if (importeTotalEscondido.value == 0) {
+                event.preventDefault(); // Evitar el envío del formulario
+                Swal.fire({
+                    icon: 'error',
+                    title: '¡Error!',
+                    text: 'El total de la factura no puede ser 0.',
+                });
+                return;
+            }
+            
+        });
+        
         
         
     </script>

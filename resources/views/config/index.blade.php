@@ -73,6 +73,60 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Nombre empresa --}}
+            <div class="col-12 col-md-3 mb-3">
+                <div class="card info h-100">
+                    <div class="card-body">
+                        <div class="display-3">
+                            <i class="far fa-building text-muted"></i>
+                        </div>
+                        <h5 class="card-title">Domicilio Fiscal</h5>
+                        {{-- <small>Tal cual está presentada en afip</small> --}}
+                        <hr>
+                        
+                        <form method="post" action="{{route('config.update', obj_variable_global('DOMICILIO_FISCAL')->id)}}" >
+                            @csrf @method('patch')
+                            <input class="form form-control mb-3" name="valor" value="{{variable_global('DOMICILIO_FISCAL')}}">
+                            <button class="btn btn-success">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+                      {{-- Condicion frente al IVA --}}
+                      <div class="col-12 col-md-3 mb-3">
+                        <div class="card info h-100">
+                            <div class="card-body">
+                                <div class="display-3">
+                                    <i class="far fa-building text-muted"></i>
+                                </div>
+                                <h5 class="card-title">Condición frente al IVA</h5>
+                                <small></small>
+                                <hr>
+                                <form method="post" action="{{route('config.update', obj_variable_global('CONDICION_IVA')->id)}}" >
+                                    @csrf @method('patch')
+                                    <select class="form-control form-select mb-3" name="valor">
+                                        {{-- Sin valor --}}
+                                        <option value="">Seleccione una opción</option>
+                                        {{-- Opciones --}}
+                                        <option value="IVA Responsable Inscripto" {{variable_global('CONDICION_IVA') == 'IVA Responsable Inscripto' ? 'selected' : ''}}>IVA Responsable Inscripto</option>
+                                        <option value="IVA Responsable No Inscripto" {{variable_global('CONDICION_IVA') == 'IVA Responsable No Inscripto' ? 'selected' : ''}}>IVA Responsable No Inscripto</option>
+                                        <option value="IVA Exento" {{variable_global('CONDICION_IVA') == 'IVA Exento' ? 'selected' : ''}}>IVA Exento</option>
+                                        <option value="IVA No Responsable" {{variable_global('CONDICION_IVA') == 'IVA No Responsable' ? 'selected' : ''}}>IVA No Responsable</option>
+                                        <option value="IVA Sujeto Exento" {{variable_global('CONDICION_IVA') == 'IVA Sujeto Exento' ? 'selected' : ''}}>IVA Sujeto Exento</option>
+                                        <option value="Consumidor Final" {{variable_global('CONDICION_IVA') == 'Consumidor Final' ? 'selected' : ''}}>Consumidor Final</option>
+                                        <option value="Responsable Monotributo" {{variable_global('CONDICION_IVA') == 'Responsable Monotributo' ? 'selected' : ''}}>Responsable Monotributo</option>
+                                        <option value="Sujeto No Categorizado" {{variable_global('CONDICION_IVA') == 'Sujeto No Categorizado' ? 'selected' : ''}}>Sujeto No Categorizado</option>
+                                        <option value="Proveedor del Exterior" {{variable_global('CONDICION_IVA') == 'Proveedor del Exterior' ? 'selected' : ''}}>Proveedor del Exterior</option>
+                                        <option value="Cliente del Exterior" {{variable_global('CONDICION_IVA') == 'Cliente del Exterior' ? 'selected' : ''}}>Cliente del Exterior</option>
+                                        <option value="IVA Liberado – Ley Nº 19.640" {{variable_global('CONDICION_IVA') == 'IVA Liberado – Ley Nº 19.640' ? 'selected' : ''}}>IVA Liberado – Ley Nº 19
+                                    </select>
+                                    <button class="btn btn-success">Guardar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
             
             {{-- Arca --}}
             <div class="col-12 col-md-3 mb-3">

@@ -62,5 +62,19 @@ class DatabaseSeeder extends Seeder
             // 'valor' => ''
         ]);
 
+        VariableGlobal::updateOrCreate([
+            'clave' => 'CONDICION_IVA',
+            'descripcion' => 'Condiciones de IVA para facturación electrónica',
+        ], [
+            // 'valor' => ''
+        ]);
+        
+        VariableGlobal::updateOrCreate([
+            'clave' => 'DOMICILIO_FISCAL',
+            'descripcion' => 'Domicilio fiscal de la empresa',
+        ], [
+            // 'valor' => ''
+        ]);
+
     }
 }
