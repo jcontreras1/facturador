@@ -94,6 +94,26 @@
                 </div>
             </div>
 
+            {{-- Fecha inicio actividades --}}
+            <div class="col-12 col-md-3 mb-3">
+                <div class="card info h-100">
+                    <div class="card-body">
+                        <div class="display-3">
+                            <i class="far fa-building text-muted"></i>
+                        </div>
+                        <h5 class="card-title">Fecha de inicio de actividades</h5>
+                        <small>Si no se dispone del dato, solicitar al contador/contadora</small>
+                        <hr>
+                        
+                        <form method="post" action="{{route('config.update', obj_variable_global('FECHA_INICIO_ACTIVIDADES')->id)}}" >
+                            @csrf @method('patch')
+                            <input class="form form-control mb-3" type="date" name="valor" value="{{variable_global('FECHA_INICIO_ACTIVIDADES')}}">
+                            <button class="btn btn-success">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
                       {{-- Condicion frente al IVA --}}
                       <div class="col-12 col-md-3 mb-3">
                         <div class="card info h-100">

@@ -75,6 +75,13 @@ class DatabaseSeeder extends Seeder
         ], [
             // 'valor' => ''
         ]);
+        
+        VariableGlobal::updateOrCreate([
+            'clave' => 'FECHA_INICIO_ACTIVIDADES',
+            'descripcion' => 'Fecha de inicio de actividades de la empresa',
+        ], [
+            // 'valor' => ''
+        ]);
 
     }
 }

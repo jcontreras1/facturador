@@ -98,14 +98,14 @@
         .bordered-container {
             border: 1px solid #000;
             padding: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
             width: 100%;
             font-size: 10px; 
         }
         /* Estilo para el cuadro de los totales */
         .total-container {
             border: 1px solid #000;
-            margin-top: 20px;
+            margin-top: 10px;
             width: 100%;
             text-align: right;
         }
@@ -166,8 +166,9 @@
                 <td class="left-column" style="padding-left: 10px;">
                     <p>
                         <strong>Razón Social: </strong> {{variable_global('RAZON_SOCIAL')}}<br>
+                        <strong>CUIT:</strong> {{ variable_global('CUIT_EMPRESA') }}
+                        <br>
                         <strong>Domicilio Comercial: </strong> {{variable_global('DOMICILIO_FISCAL')}}<br>
-                        <strong>Cuit: </strong>{{variable_global('CUIT_EMPRESA')}}<br>
                         <strong>Condición frente al IVA: </strong>{{variable_global('CONDICION_IVA')}}
                     </p>
                 </td>
@@ -176,11 +177,12 @@
                     <p><strong>Punto de Venta: {{ str_pad(variable_global('PUNTO_VENTA'), 5, '0', STR_PAD_LEFT) }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Comp. Nro: {{ str_pad($factura->nro_factura, 8, '0', STR_PAD_LEFT) }}</strong></p>
                     <p><strong>Fecha de emisión:</strong> {{ $factura->created_at->format('d/m/Y') }}</p>
                     <p>
-                        <strong>CUIT:</strong> {{ variable_global('CUIT_EMPRESA') }}
-                        <br>
+                        
                         <strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}
                         <br>
-                        <strong>Fecha de inicio de Actividades:</strong> --
+                        @if(variable_global('FECHA_INICIO_ACTIVIDADES') !== '')
+                        <strong>Fecha de inicio de Actividades:</strong> {{ date('d/m/Y', strtotime(variable_global('FECHA_INICIO_ACTIVIDADES'))) }}
+                        @endif
                     </p>
                 </td>
             </tr>
@@ -188,17 +190,15 @@
 
         <div class="bordered-container">
           
-                        <strong>CUIT: </strong> {{$factura->cuit}}<br>
-                        
+            <strong>Apellido y Nombre o Razón Social: </strong> {{$factura->razon_social}}<br>
+                        <strong>CUIT: </strong> {{$factura->cuit}}<br> 
                         <strong>Domicilio: </strong> {{$factura->domicilio}}    <br>
-                        <strong>Apellido y Nombre o Razón Social: </strong> {{$factura->razon_social}}<br>
         </div>
         
         <!-- Tabla de productos -->
         <table class="item-table">
             <thead>
                 <tr>
-                    <th>Código</th>
                     <th>Descripción</th>
                     <th>Cantidad</th>
                     <th>U. Medida</th>
@@ -211,8 +211,12 @@
             <tbody>
                 @foreach($factura->items as $item)  
                 <tr>
-                    <td>{{$item->codigo}}</td>
-                    <td>{{$item->descripcion}}</td>
+                    <td>
+                        @if($item->codigo)
+                        [{{$item->codigo}}]
+                        @endif
+                        {{$item->descripcion}}
+                    </td>
                     <td>{{$item->cantidad}}</td>
                     <td>{{$item->unidad}}</td>
                     <td>{{pesosargentinos($item->precio_unitario)}}</td>
@@ -244,7 +248,7 @@
                             <img src="{!! imgBase64QRFactura($factura) !!}" alt="QR" />
                         </td>
                         <td style="width: 40%; text-align: left;">
-                            <img width="70" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
+                            <img width="80" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
                             <br>
                             Comprobante autorizado
                         </td>
