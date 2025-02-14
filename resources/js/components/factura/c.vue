@@ -186,10 +186,10 @@
 
   //averigua los datos extras del contribuyente
   const onDocumentoFocusOut = async () => {
-    if (invalidDocument) {
+
+    if (invalidDocument.value) {
       return;
     }
-    console.log("pasa")
     isLoading.value = true
 
     let url = `/api/contribuyente/${form.documento}`;
