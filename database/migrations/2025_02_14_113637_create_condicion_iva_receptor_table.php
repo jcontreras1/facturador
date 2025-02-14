@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('factura', function (Blueprint $table) {
-            $table->timestamp('fecha_vencimiento_cae')->nullable()->after('cae');
+        Schema::create('condicion_iva_receptor', function (Blueprint $table) {
+            $table->id();
+            $table->string('codigo_afip');
+            $table->string('descripcion');
+            $table->string('cmp_clase')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('factura', function (Blueprint $table) {
-            $table->dropColumn('fecha_vencimiento_cae');
-        });
+        Schema::dropIfExists('condicion_iva_receptor');
     }
 };

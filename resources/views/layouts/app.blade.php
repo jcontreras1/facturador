@@ -17,7 +17,7 @@
     <body>
         @include('layouts.navigation')
         <!-- Page Content -->
-        <main>
+        <main id="main">
             {{ $slot }}
         </main>
         @include('sweetalert::alert')

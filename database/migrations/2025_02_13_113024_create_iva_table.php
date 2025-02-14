@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('detalle_factura', function (Blueprint $table) {
-            $table->unsignedBigInteger('factura_id')->nullable();
+        Schema::create('iva', function (Blueprint $table) {
+            $table->id();
+            $table->float('iva');
+            $table->string('codigo_afip')->nullable();
+            $table->string('descripcion');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('detalle_factura', function (Blueprint $table) {
-            $table->dropColumn('factura_id');
-        });
+        Schema::dropIfExists('iva');
     }
 };

@@ -234,6 +234,7 @@ class Afip {
         
         public function ExecuteRequest($operation, $params = [])
         {
+            
             if (!isset($this->soap_client)) {
                 $this->soap_client = new \SoapClient($this->WSDL, [
                     'soap_version'   => $this->soap_version,
@@ -245,6 +246,7 @@ class Afip {
             }
             
             $results = $this->soap_client->{$operation}($params);
+            // dd($this->soap_client->__getLastRequest());
             
             $this->_CheckErrors($operation, $results);
             

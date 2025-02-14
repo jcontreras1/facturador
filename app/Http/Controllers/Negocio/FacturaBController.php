@@ -13,26 +13,17 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use SimpleQRCode\QRCode;
 
-class FacturacionController extends Controller
+class FacturaBController extends Controller
 {
-    public function index(){
-        $facturas = Factura::orderBy('id', 'desc')->cursorPaginate(16);
-        return view('facturacion.index')->with(['facturas' => $facturas
-        ]);
-    }
-    public function createFacturaCGenerica(){
-        return view('facturacion.createFacturaCGenerica');
-    }
-    
-    public function facturaCGenerica(FacturaCGenericaRequest $request){
-        
+    public function facturar(Request $request)
+    {
         $detalle = transformarArreglos($request);
         $factura = Factura::create(array_merge( $request->all(), [
             'total' => $request->importeTotal,
             'total_neto' => $request->importeTotal,
             'created_by' => auth()->user()->id,
             'punto_venta' => variable_global('PUNTO_VENTA'),
-            'tipo_comprobante' => 'C',
+            'tipo_comprobante' => 'B',
             'razon_social' => $request->razonSocial,
             'domicilio' => $request->domicilio,
             'cuit' => $request->documento,
@@ -51,7 +42,7 @@ class FacturacionController extends Controller
         if(!puntoVentaValido($puntoVenta))
         toast('El punto de venta no es válido o no está definido. Revise las configuraciones del sistema', 'error')->autoClose(5000);
         
-        $ultimaFactura = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, idTipoFactura('C')) + 1;
+        $ultimaFactura = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, idTipoFactura('B')) + 1;
         $factura->update(['nro_factura' => $ultimaFactura]);
         $fechaServicioDesde = null;
         $fechaServicioHasta = null;
@@ -70,7 +61,7 @@ class FacturacionController extends Controller
             'PtoVta' 	=> $puntoVenta,
             'CbteDesde' => $ultimaFactura,
             'CbteHasta' => $ultimaFactura,
-            'CbteTipo' 	=> idTipoFactura('C'), 
+            'CbteTipo' 	=> idTipoFactura('B'), 
             'CbteFch' 	=> intval(str_replace('-', '', $request->fecha)),
             
             /* Del contenido */
@@ -117,16 +108,5 @@ class FacturacionController extends Controller
         return redirect()->route('facturacion.index');
     }
 
-    public function descargarPdf(Factura $factura){
-        
-        // return view('facturacion.pdf', ['factura' => $factura]);
-        $pdf = PDF::loadView('facturacion.pdf', ['factura' => $factura]);
-        return $pdf->download('factura_'.$factura->nro_factura.'.pdf');
     }
 
-    public function enviarMail(Factura $factura, Request $request){
-        Mail::to($request->email)->send(new NuevaFactura($factura));
-        toast('Mail enviado correctamente', 'success')->autoClose(1500);
-        return redirect()->back();
-    }
-}

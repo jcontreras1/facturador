@@ -18,8 +18,13 @@ class ContribuyenteController extends Controller
 {
     public function padronv4(){
         $afip = new Afip();
-        $contribuyente = $afip->PadronAlcance4->GetTaxpayerDetails(20924507005);
-        return datosContribuyente(contribuyenteObject: $contribuyente);
+       // $result = $afip->ConsultaEmbarque->obtenerConsultaEstadosCOEM([]);
+         $result = $afip->ConsultaTablasReferencia->listaTablasReferencia([]);
+        // $result = $afip->ComunicacionEmbarque->registrarCaratula([]);
+        dd($result);
+
+        // $contribuyente = $afip->PadronAlcance4->GetTaxpayerDetails(20924507005);
+        // return datosContribuyente(contribuyenteObject: $contribuyente);
         // dd($contribuyente);
         // dd(datosContribuyente(contribuyenteObject: $contribuyente));
 

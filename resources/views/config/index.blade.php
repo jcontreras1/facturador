@@ -74,7 +74,7 @@
                 </div>
             </div>
 
-            {{-- Nombre empresa --}}
+            {{-- Domicilio Fiscal --}}
             <div class="col-12 col-md-3 mb-3">
                 <div class="card info h-100">
                     <div class="card-body">
