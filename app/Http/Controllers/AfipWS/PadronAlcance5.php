@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Afip;
+namespace App\Http\Controllers\AfipWS;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

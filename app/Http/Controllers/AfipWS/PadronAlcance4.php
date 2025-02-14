@@ -1,24 +1,22 @@
 <?php
 
-namespace App\Http\Controllers\Afip;
+namespace App\Http\Controllers\AfipWS;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exception;
 
 /**
- * El servicio de Consulta de Padrón Alcance 10 permite que un organismo externo
- * acceda a los datos de un contribuyente registrado en el Padrón de AFIP, en su versión
- * mínima.
+ * Este WS se puede utilizar para acceder a datos de un contribuyente relacionados con su
+ * situación tributaria. Ejemplo: impuestos y regimenes en los que esta inscripto.
  */
-
-class PadronAlcance10 extends AfipWebService {
+class PadronAlcance4 extends AfipWebService {
 
 var $soap_version 	= SOAP_1_1;
-var $WSDL 			= 'ws_sr_padron_a10-production.wsdl';
-var $URL 			= 'https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA10';
-var $WSDL_TEST 		= 'ws_sr_padron_a10.wsdl';
-var $URL_TEST 		= 'https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA10';
+var $WSDL 			= 'ws_sr_padron_a4-production.wsdl';
+var $URL 			= 'https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA4';
+var $WSDL_TEST 		= 'ws_sr_padron_a4.wsdl';
+var $URL_TEST 		= 'https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA4';
 
 public function GetServerStatus()
 {
@@ -27,7 +25,7 @@ public function GetServerStatus()
 
 public function GetTaxpayerDetails($identifier)
 {
-    $ta = $this->afip->GetServiceTA('ws_sr_padron_a10');
+    $ta = $this->afip->GetServiceTA('ws_sr_padron_a4');
     
     $params = array(
         'token' 			=> $ta->token,

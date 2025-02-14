@@ -6,6 +6,7 @@ use App\Http\Controllers\Afip\Afip;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Facturas\FacturaCGenericaRequest;
 use App\Mail\NuevaFactura;
+use App\Models\Arca\Comprobante;
 use App\Models\Factura;
 use App\Models\ItemFactura;
 use Illuminate\Http\Request;
@@ -15,19 +16,11 @@ use SimpleQRCode\QRCode;
 
 class FacturacionController extends Controller
 {
-    public function index(){
-        $facturas = Factura::orderBy('id', 'desc')->cursorPaginate(16);
-        return view('facturacion.index')->with(['facturas' => $facturas
-        ]);
-    }
-    public function createFacturaCGenerica(){
-        return view('facturacion.createFacturaCGenerica');
-    }
     
     public function facturaCGenerica(FacturaCGenericaRequest $request){
         
         $detalle = transformarArreglos($request);
-        $factura = Factura::create(array_merge( $request->all(), [
+        $factura = Comprobante::create(array_merge( $request->all(), [
             'total' => $request->importeTotal,
             'total_neto' => $request->importeTotal,
             'created_by' => auth()->user()->id,

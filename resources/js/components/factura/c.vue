@@ -1,8 +1,7 @@
 <template>
-    <div class="container py-5">
-      <h3>Crear Comprobante</h3>
+    <div class="container">
+      <h3>Crear Comprobante C</h3>
       <hr>
-  
       <form @submit.prevent="submitForm">
         <input type="hidden" v-model="importeTotalEscondido" required>
   
@@ -46,7 +45,13 @@
           <div class="card-header fs-4"><i class="fas fa-user-alt"></i> Cliente</div>
           <div class="card-body">
             <div class="row">
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-md-3">
+                <label for="condicionIva">Condición IVA</label>
+                <select v-model="form.condicionIva" class="form-select" required>
+                  <option v-for="condicion in condicionesIva" :key="condicion.id" :value="condicion.id">{{ condicion.descripcion }}</option>
+                  </select> 
+              </div>
+              <div class="col-12 col-md-3">
                 <label for="tipoDocumento">Tipo de Cliente</label>
                 <select v-model="form.tipoDocumento" @change="handleTipoDocumentoChange" class="form-select" required>
                   <option value="80">CUIT</option>
@@ -57,7 +62,8 @@
               </div>
               <div class="col-12 col-md-6 mb-3">
                 <label for="documento">DNI/CUIL/CUIT</label>
-                <input type="number" v-model="form.documento" :disabled="isDocumentoDisabled" class="form-control" @focusout="onDocumentoFocusOut">
+                <input type="number" v-model.text="form.documento" :disabled="isDocumentoDisabled" :class="{'is-invalid' : invalidDocument}" class="form-control" @focusout="onDocumentoFocusOut">
+                <span class="invalid-feedback">El campo no coincide con el tipo de documento, o está incompleto.</span>
               </div>
               <div class="col-12 col-md-6">
                 <label for="razonSocial">Razón Social <i v-show="isLoading" class="fas fa-spinner fa-spin"></i></label>
@@ -75,13 +81,9 @@
         <div class="card">
           <div class="card-header fs-4"><i class="fas fa-list"></i> Detalle</div>
           <div class="card-body">
-            <button type="button" class="btn btn-primary mt-3" @click="agregarLinea">Agregar Línea <i class="fas fa-caret-down"></i></button>
+            <button type="button" class="btn btn-primary my-2" @click="agregarLinea">Agregar Línea <i class="fas fa-caret-down"></i></button>
             <div v-for="(linea, index) in lineas" :key="index" class="linea-detalle row mb-3">
-              <div class="col-12 col-md-1">
-                <label for="codigo{{ index }}">Código</label>
-                <input type="text" v-model="linea.codigo" class="form-control" @input="calcularSubtotal(index)">
-              </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-3">
                 <label for="descripcion{{ index }}">Descripción</label>
                 <input type="text" v-model="linea.descripcion" class="form-control" @input="calcularSubtotal(index)">
               </div>
@@ -95,7 +97,7 @@
                   <option v-for="um in unidadesDeMedida" :key="um" :value="um">{{ um }}</option>
                 </select>
               </div>
-              <div class="col-12 col-md-1">
+              <div class="col-12 col-md-2">
                 <label for="precioUnitario{{ index }}">Precio Unit.</label>
                 <input type="number" v-model="linea.precioUnitario" class="form-control" @input="calcularSubtotal(index)" required>
               </div>
@@ -107,7 +109,7 @@
                 <label for="importeBonificado{{ index }}">$ Bonif.</label>
                 <input type="number" v-model="linea.importeBonificado" class="form-control" readonly>
               </div>
-              <div class="col-12 col-md-1">
+              <div class="col-12 col-md-2">
                 <label for="subtotal{{ index }}">Subtotal</label>
                 <input type="number" v-model="linea.subtotal" class="form-control" readonly>
               </div>
@@ -126,20 +128,26 @@
           <h4>Total: $<span>{{ importeTotal }}</span></h4>
         </div>
       </form>
+
     </div>
   </template>
   
   <script setup>
-  import { ref, reactive, computed } from 'vue'
+  import { ref, reactive, computed, defineProps } from 'vue'
   import axios from 'axios'
   import Swal from 'sweetalert2'
   
+  const props = defineProps({
+    condicionesIva: Object,
+  })
+
   // Reactive state
   const form = reactive({
     fecha: new Date().toISOString().split('T')[0],
     concepto: '2',
     tipoDocumento: '99',
     documento: '',
+    condicionIva: 7,
     razonSocial: '',
     fechaInicioServicios : new Date().toISOString().split('T')[0],
     fechaFinServicios : new Date().toISOString().split('T')[0],
@@ -160,19 +168,39 @@
   // Computed property to disable document input for "Consumidor Final"
   const isDocumentoDisabled = computed(() => form.tipoDocumento === '99')
   
+  const invalidDocument = computed(() => {
+    //si es consumidor final no se valida
+    if(form.tipoDocumento === '99') { return false; }
+    if(form.tipoDocumento === '80' && String(form.documento).length !== 11) { return true; }
+    if(form.tipoDocumento === '86' && String(form.documento).length !== 11) { return true; }
+    if(form.tipoDocumento === '96' && String(form.documento).length === 0) { return true; }
+    return false;
+  })
+  
   // Functions
   const handleTipoDocumentoChange = () => {
     if (form.tipoDocumento === '99') {
       form.documento = ''
     }
   }
-  
+
+  //averigua los datos extras del contribuyente
   const onDocumentoFocusOut = async () => {
-    if (form.documento.trim() === '') return
-  
+    if (invalidDocument) {
+      return;
+    }
+    console.log("pasa")
     isLoading.value = true
+
+    let url = `/api/contribuyente/${form.documento}`;
+    if([80,86].includes(form.tipoDocumento)){
+      url += `?tipo=cuit`
+    }else{
+      url += `?tipo=dni`
+    }
+
     try {
-      const response = await axios.get(`/api/contribuyente/${form.documento}`)
+      const response = await axios.get(url)
       form.razonSocial = response.data.razonSocial
       form.domicilio = response.data.domicilio
     } catch (error) {
@@ -219,7 +247,6 @@
   
   const submitForm = () => {
 
-    console.log(form);
     return;
     if (lineas.value.length === 0) {
       Swal.fire({
@@ -240,7 +267,6 @@
     }
   
     // Submit form logic here
-    console.log('Formulario enviado')
   }
   </script>
   

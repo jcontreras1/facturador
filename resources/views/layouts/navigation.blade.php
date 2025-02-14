@@ -16,7 +16,7 @@
                     <a class="nav-link {{ request()->routeIs('items.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('items.index') }}">Servicios</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('facturacion.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('facturacion.index') }}">Facturación</a>
+                    <a class="nav-link {{ request()->routeIs('comprobantes.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('comprobantes.index') }}">Facturación</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('config.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('config.index') }}">Configuraciones</a>

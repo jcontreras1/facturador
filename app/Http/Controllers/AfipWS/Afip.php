@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Afip;
+namespace App\Http\Controllers\AfipWS;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -144,6 +144,9 @@ class Afip {
                 case 'PadronAlcance10':
                     $ret = new PadronAlcance10($this);
                     break;
+                case 'PadronAlcance13':
+                        $ret = new PadronAlcance13($this);
+                        break;
                 
                 default:
                 throw new Exception("Propiedad no definida", 1);

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Negocio;
 
-use App\Http\Controllers\Afip\Afip;
+use App\Http\Controllers\AfipWS\Afip;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Facturas\FacturaCGenericaRequest;
 use App\Mail\NuevaFactura;
@@ -29,10 +29,15 @@ class ContribuyenteController extends Controller
         // dd(datosContribuyente(contribuyenteObject: $contribuyente));
 
     }
-
-    public function infoContribuyente($doc){
+    public function infoContribuyente(Request $request, $doc){
         $afip = new Afip();
-        $contribuyente = $afip->PadronAlcance4->GetTaxpayerDetails($doc);
+        $contribuyente = null;
+
+        if($request->tipoDoc == 'dni'){
+            $contribuyente = $afip->PadronAlcance10->GetTaxpayerDetails($doc);
+        }else{
+            $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($doc);
+        }
         if(!$contribuyente){
             return response(['error' => 'No se encontraron datos para el CUIT ingresado'], 404);
         }
