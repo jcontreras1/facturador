@@ -3,45 +3,54 @@
 namespace App\Http\Controllers\Negocio;
 
 use App\Http\Controllers\AfipWS\Afip;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Facturas\FacturaCGenericaRequest;
-use App\Mail\NuevaFactura;
-use App\Models\Factura;
-use App\Models\ItemFactura;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Mail;
-use SimpleQRCode\QRCode;
 
 
 class ContribuyenteController extends Controller
 {
     public function padronv4(){
         $afip = new Afip();
-       // $result = $afip->ConsultaEmbarque->obtenerConsultaEstadosCOEM([]);
-         $result = $afip->ConsultaTablasReferencia->listaTablasReferencia([]);
-        // $result = $afip->ComunicacionEmbarque->registrarCaratula([]);
-        dd($result);
-
-        // $contribuyente = $afip->PadronAlcance4->GetTaxpayerDetails(20924507005);
-        // return datosContribuyente(contribuyenteObject: $contribuyente);
-        // dd($contribuyente);
-        // dd(datosContribuyente(contribuyenteObject: $contribuyente));
-
+        $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails(30670501813);
+        dd($contribuyente);
+        //$contribuyente = $afip->PadronAlcance13->DniACuit(92450700);
+        //$contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($contribuyente);
+        //dd($contribuyente);
+        return response(datosContribuyente($contribuyente), 200);
+        
+        
     }
     public function infoContribuyente(Request $request, $doc){
+        info('Consultando datos del contribuyente');
+        if(trim($doc) == ''){
+            return response(['error' => 'Debe ingresar un número de documento'], 400);
+        }
         $afip = new Afip();
         $contribuyente = null;
-
-        if($request->tipoDoc == 'dni'){
-            $contribuyente = $afip->PadronAlcance10->GetTaxpayerDetails($doc);
+        if($request->tipo == 'dni'){
+            try {
+                $contribuyente = $afip->PadronAlcance13->DniACuit($doc);
+                $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($contribuyente);
+            } catch (\Throwable $th) {
+                return response(['error' => $th->getMessage()], 500);
+            }        
+            
+            
         }else{
-            $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($doc);
+            info('Consultando por CUIT/CUIL');
+            try {
+                $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($doc);
+            } catch (\Throwable $th) {
+                return response(['error' => $th->getMessage()], 500);
+            }
         }
+        
         if(!$contribuyente){
-            return response(['error' => 'No se encontraron datos para el CUIT ingresado'], 404);
+            $tipoDoc = $request->tipo == 'dni' ? 'DNI' : 'CUIT/CUIL';
+            return response(['error' => 'No se encontraron datos para el ' . $tipoDoc . ' ingresado'], 404);
         }
         return 
-            response(datosContribuyente(contribuyenteObject: $contribuyente), 200);
+        response(datosContribuyente(contribuyenteObject: $contribuyente), 200);
     }
 }

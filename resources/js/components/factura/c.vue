@@ -193,21 +193,23 @@
     isLoading.value = true
 
     let url = `/api/contribuyente/${form.documento}`;
-    if([80,86].includes(form.tipoDocumento)){
+
+    if([80,86].includes(parseInt(form.tipoDocumento))){
       url += `?tipo=cuit`
     }else{
       url += `?tipo=dni`
     }
-
     try {
       const response = await axios.get(url)
       form.razonSocial = response.data.razonSocial
       form.domicilio = response.data.domicilio
     } catch (error) {
+      console.log(error);
+      let msgError = error.response.data.error ?? 'No se encontró el usuario con el documento ingresado.';
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se encontró el usuario con el documento ingresado.',
+        text: msgError,
       })
     } finally {
       isLoading.value = false
@@ -247,7 +249,6 @@
   
   const submitForm = () => {
 
-    return;
     if (lineas.value.length === 0) {
       Swal.fire({
         icon: 'error',
