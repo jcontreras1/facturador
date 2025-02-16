@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Arca\Comprobante;
 use App\Models\Factura;
 use App\Models\VariableGlobal;
 use Illuminate\Support\Facades\Request;
@@ -41,23 +42,7 @@ function puntoVentaValido($puntoVenta){
 }
 
 function cuitGenerico(){ return 20111111112; }
-function idTipoFactura($tipoFactura){
-	$tipos = [
-		'A' => 1,
-		'B' => 6,
-		'C' => 11,
-		'FCEA' => 201,
-		'FCEB' => 206,
-		'FCEC' => 211,
-		'NCA' => 3,
-		'NCB' => 8,
-		'NCC' => 13,
-	];
-	if(!array_key_exists($tipoFactura, $tipos)){
-		return 0;
-	}
-	return $tipos[$tipoFactura];
-}
+
 
 function transformarArreglos($request){
 	$lineas = [];
@@ -83,20 +68,20 @@ function transformarArreglos($request){
 	}
 	return $lineas;
 }
-function infoQRFactura(Factura $factura){
+function infoQRFactura(Comprobante $comprobante){
 	// Datos de la factura
-	$fecha = $factura->created_at->format('Y-m-d');
-	$cuit = 0;//$factura->cliente->cuit;
-	$ptoVta = $factura->pto_venta;
-	$tipoCmp = idTipoFactura($factura->tipo_comprobante); // Función para determinar el tipo de comprobante
-	$nroCmp = $factura->nro_factura;
-	$importe = $factura->total;
+	$fecha = $comprobante->created_at->format('Y-m-d');
+	$cuit = 0;//$comprobante->cliente->cuit;
+	$ptoVta = $comprobante->pto_venta;
+	$tipoCmp = $comprobante->tipoComprobante->codigo_afip; // Función para determinar el tipo de comprobante
+	$nroCmp = $comprobante->nro_factura;
+	$importe = $comprobante->total;
 	$moneda = 'PES'; // Siempre será "PES" (Pesos)
 	$ctz = 1; // Cotización siempre es 1 (para PES)
 	$tipoDocRec = 0;//80; // Para tipo de documento del receptor (puede variar según el cliente)
-	$nroDocRec = 0;//$factura->cliente->nro_documento; // Número de documento del receptor (si corresponde)
+	$nroDocRec = 0;//$comprobante->cliente->nro_documento; // Número de documento del receptor (si corresponde)
 	$tipoCodAut = 'A'; // Tipo de código de autorización (autorizado)
-	$codAut = $factura->cae; // Código de autorización (CAE)
+	$codAut = $comprobante->cae; // Código de autorización (CAE)
 	
 	$jsonData = [
 		"ver" => 1,
@@ -118,8 +103,8 @@ function infoQRFactura(Factura $factura){
 	return "https://www.afip.gob.ar/fe/qr/?p=" . $base64Json;
 }
 
-function imgBase64QRFactura(Factura $factura){
-	$qr = infoQRFactura($factura);
+function imgBase64QRFactura(Comprobante $comprobante){
+	$qr = infoQRFactura($comprobante);
 	$qrCode = new \BaconQrCode\Writer(new \BaconQrCode\Renderer\ImageRenderer(
 		new \BaconQrCode\Renderer\RendererStyle\RendererStyle(150),
 		new \BaconQrCode\Renderer\Image\SvgImageBackEnd()

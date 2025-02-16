@@ -12,7 +12,7 @@ class Comprobante extends Model
         'cuit_dni',
         'razon_social',
         'domicilio',
-        'venta_id',
+        'tipo_documento_id',
         'tipo_comprobante_id',
         'punto_venta',
         'nro_comprobante',
@@ -38,7 +38,7 @@ class Comprobante extends Model
 
     public function tipoComprobante()
     {
-        return $this->belongsTo(TipoComprobante::class, 'tipo_comprobante_id');
+        return $this->belongsTo(TipoComprobante::class, 'tipo_comprobante_id', 'codigo_afip');
     }
 
     

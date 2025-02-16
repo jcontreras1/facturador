@@ -3,7 +3,6 @@
       <h3>Crear Comprobante C</h3>
       <hr>
       <form @submit.prevent="submitForm">
-        <input type="hidden" v-model="importeTotalEscondido" required>
   
         <!-- Datos de la Factura -->
         <div class="card mb-3">
@@ -52,8 +51,8 @@
                   </select> 
               </div>
               <div class="col-12 col-md-3">
-                <label for="tipoDocumento">Tipo de Cliente</label>
-                <select v-model="form.tipoDocumento" @change="handleTipoDocumentoChange" class="form-select" required>
+                <label for="tipoDocumentoId">Tipo de Cliente</label>
+                <select v-model="form.tipoDocumentoId" @change="handletipoDocumentoIdChange" class="form-select" required>
                   <option value="80">CUIT</option>
                   <option value="86">CUIL</option>
                   <option value="96">DNI</option>
@@ -143,48 +142,51 @@
 
   // Reactive state
   const form = reactive({
-    fecha: new Date().toISOString().split('T')[0],
-    concepto: '2',
-    tipoDocumento: '99',
+    tipoDocumentoId: '99',
     documento: '',
-    condicionIva: 7,
     razonSocial: '',
+    domicilio: '',
+    tipoComprobanteId : 11, //factura C
+    condicionIva: 7,
+    concepto: '2',
+    fecha: new Date().toISOString().split('T')[0],
     fechaInicioServicios : new Date().toISOString().split('T')[0],
     fechaFinServicios : new Date().toISOString().split('T')[0],
     fechaVencimientoPago : new Date().toISOString().split('T')[0],
-    domicilio: '',
+    importeNeto : 0,
+    importeTotal : 0,
+    lineas : null,
   })
   
   const lineas = ref([])
   const unidadesDeMedida = ['unidad', 'metros', 'kilos', 'litros']
   const isLoading = ref(false)
-  const importeTotalEscondido = ref(0)
   
-  // Computed property for total amount
+  // Propiedad computada para el importe total
   const importeTotal = computed(() => {
     return lineas.value.reduce((acc, linea) => acc + linea.subtotal, 0).toFixed(2)
   })
   
   // Computed property to disable document input for "Consumidor Final"
-  const isDocumentoDisabled = computed(() => form.tipoDocumento === '99')
+  const isDocumentoDisabled = computed(() => form.tipoDocumentoId === '99')
   
   const invalidDocument = computed(() => {
     //si es consumidor final no se valida
-    if(form.tipoDocumento === '99') { return false; }
-    if(form.tipoDocumento === '80' && String(form.documento).length !== 11) { return true; }
-    if(form.tipoDocumento === '86' && String(form.documento).length !== 11) { return true; }
-    if(form.tipoDocumento === '96' && String(form.documento).length === 0) { return true; }
+    if(form.tipoDocumentoId === '99') { return false; }
+    if(form.tipoDocumentoId === '80' && String(form.documento).length !== 11) { return true; }
+    if(form.tipoDocumentoId === '86' && String(form.documento).length !== 11) { return true; }
+    if(form.tipoDocumentoId === '96' && String(form.documento).length === 0) { return true; }
     return false;
   })
   
-  // Functions
-  const handleTipoDocumentoChange = () => {
-    if (form.tipoDocumento === '99') {
+  // Funciones
+  const handletipoDocumentoIdChange = () => {
+    if (form.tipoDocumentoId === '99') {
       form.documento = ''
     }
   }
 
-  //averigua los datos extras del contribuyente
+  // Obtiene los datos extras del contribuyente
   const onDocumentoFocusOut = async () => {
 
     if (invalidDocument.value) {
@@ -194,7 +196,7 @@
 
     let url = `/api/contribuyente/${form.documento}`;
 
-    if([80,86].includes(parseInt(form.tipoDocumento))){
+    if([80,86].includes(parseInt(form.tipoDocumentoId))){
       url += `?tipo=cuit`
     }else{
       url += `?tipo=dni`
@@ -249,6 +251,10 @@
   
   const submitForm = () => {
 
+    form.importeTotal = importeTotal.value;
+    form.importeNeto = importeTotal.value;
+    form.lineas = lineas.value;
+
     if (lineas.value.length === 0) {
       Swal.fire({
         icon: 'error',
@@ -258,7 +264,7 @@
       return
     }
   
-    if (importeTotalEscondido.value == 0) {
+    if (importeTotal.value == 0) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -266,12 +272,42 @@
       })
       return
     }
+
   
-    // Submit form logic here
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Estás por emitir una factura. Una vez emitida no podrá ser modificada.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, emitir',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.post('/api/comprobante/c', form)
+          .then((response) => {
+            console.log(response)
+            // Swal.fire({
+            //   icon: 'success',
+            //   title: 'Factura emitida',
+            //   text: 'La factura ha sido emitida correctamente.',
+            // })
+            location.href= '/comprobantes'
+          })
+          .catch((error) => {
+            let mensaje = error.response.data.message ?? 'Ocurrió un error al emitir la factura. Por favor, intente nuevamente.';
+            let codigo = error.response.status;
+            let title = codigo == 500 ? 'Error en el servidor' : 'Error';
+            console.log(error.response)
+            Swal.fire({
+              icon: 'error',
+              title: title,
+              text: mensaje,
+              footer : `Si considera que es un error del sistema, por favor comuníquese con el administrador.`
+            })
+          })
+      }
+    })
   }
   </script>
-  
-  <style scoped>
-  /* Bootstrap styles are included by default */
-  </style>
+
   

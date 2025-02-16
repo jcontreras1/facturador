@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             
             /* Datos de la persona */
+            $table->string('tipo_documento_id')->nullable(); //codigo afip
             $table->string('cuit_dni')->nullable();
             $table->string('razon_social')->nullable();
             $table->string('domicilio')->nullable();

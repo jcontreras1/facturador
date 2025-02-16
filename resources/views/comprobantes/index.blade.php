@@ -22,13 +22,13 @@
             <tbody>
                 @foreach($comprobantes as $comprobante)
                 <tr>
-                    <td>{{ $comprobante->tipo_comprobante ?? '-' }}</td>
-                    <td>{{ $comprobante->nro_factura ? str_pad($comprobante->nro_factura, 8, '0', STR_PAD_LEFT) : 'S/N' }}</td>
+                    <td>{{ $comprobante->tipoComprobante?->descripcion }}</td>
+                    <td>{{ $comprobante->nro_comprobante ? str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) : 'S/N' }}</td>
                     <td>{{ $comprobante->created_at->format('d/m/Y H:i') }}</td>
                     <td>{{ $comprobante->cliente_id ? $comprobante->cliente->nombre : 'Cons. Final' }}</td>
-                    <td>${{ pesosargentinos($comprobante->total) }}</td>
-                    <td>
-                        @if($comprobante->enviada_afip)
+                    <td>${{ pesosargentinos($comprobante->importe_total) }}</td>
+                    <td class="d-flex gap-1">
+                        @if($comprobante->cae)
                         <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-warning btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <button onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}')" data-bs-toggle="modal" data-bs-target="#modalEnviarFacturaMail" class="btn btn-info btn-sm" title="Enviar por Email"><i class="far fa-envelope"></i></button>
                         {{-- <a href="{{ route('facturacion.show', $comprobante) }}" class="btn btn-primary">Ver</a> --}}
