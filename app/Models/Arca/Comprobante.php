@@ -2,6 +2,7 @@
 
 namespace App\Models\Arca;
 
+use App\Models\Cliente;
 use Illuminate\Database\Eloquent\Model;
 
 class Comprobante extends Model
@@ -20,6 +21,7 @@ class Comprobante extends Model
         'anulacion_id',
         'importe_neto',
         'importe_gravado',
+        'cliente_id',
         'importe_no_gravado',
         'importe_exento_iva',
         'importe_iva',
@@ -49,6 +51,10 @@ class Comprobante extends Model
     public function comprobanteAnulado()
     {
         return $this->belongsTo(Comprobante::class, 'anulacion_id');
+    }
+
+    public function cliente(){
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
     
     public function condicionIvaReceptor()

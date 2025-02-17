@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Arca\Comprobante;
 use Illuminate\Database\Eloquent\Model;
 
 class Cliente extends Model
@@ -15,8 +16,8 @@ class Cliente extends Model
         'direccion',
     ];
 
-    public function facturas()
+    public function comprobantes()
     {
-        return $this->hasMany(Factura::class);
+        return $this->hasMany(Comprobante::class, 'cliente_id');
     }
 }

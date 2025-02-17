@@ -9,12 +9,11 @@
         </div>
         <hr>
         
+        @if(!count($comprobantes))
         
-        @if(!count($facturas))
-        
-        <em>No hay facturas registradas</em>
+        <em>No hay comprobantes registrados</em>
         @else
-        <table class="table table-striped table-sm" id="tabla_facturas">
+        <table class="table table-striped table-sm" id="tabla_comprobantes">
             <thead>
                 <tr>
                     <th>Fecha</th>
@@ -24,13 +23,14 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($cliente->facturas as $factura)
+                @foreach($comprobantes as $comprobante)
                 <tr>
-                    <td>{{$factura->fecha}}</td>
-                    <td>{{$factura->importe}}</td>
-                    <td>{{$factura->estado}}</td>
+                    <td>{{date('d/m/y', strtotime($comprobante->fecha_emision))}}</td>
+                    <td>${{pesosargentinos($comprobante->importe_total)}}</td>
+                    <td>{{$comprobante->estado}}</td>
                     <td>
-                        <a href="{{route('facturas.show', $factura->id)}}" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></a>
+                        <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></a>
+                        {{-- <a href="{{route('comprobantes.show', $comprobante->id)}}" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i></a> --}}
                     </td>
                 </tr>
                 @endforeach

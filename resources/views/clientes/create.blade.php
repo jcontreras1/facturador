@@ -1,61 +1,53 @@
 <x-app-layout>
     
-    <div class="container mx-auto px-4">
-        <div class="p-6 text-gray-900 dark:text-gray-100">
-            <h2 class=" mb-4 text-xl font-semibold d-flex justify-content-between">
-                Agregar un cliente
-                <a href="{{route('clientes.index')}}" class="btn btn-primary"><i class="fas fa-chevron-left"></i></a>
-            </h2>
-            <hr>
-        </div>
-        <div class="p-6 text-gray-900 dark:text-gray-100">
-            <form action="{{route('clientes.store')}}" method="POST">
-                @csrf
-                <div class="row">
-                    <div class="col-12">
-                        <label class="text">Razón Social <span class="text-danger">*</span></label>
-                        <input name="nombre" id="nuevo_cliente_razon_social" class="form-control" type="text" required>
+    <div class="container">
+        <x-title title="Clientes" urlBack="{{route('clientes.index')}}" />
+        <form action="{{route('clientes.store')}}" method="POST">
+            @csrf
+            <div class="row">
+                <div class="col-12">
+                    <label class="text">Razón Social <span class="text-danger">*</span></label>
+                    <input name="nombre" id="nuevo_cliente_razon_social" class="form-control" type="text" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label class="text">CUIT/CUIL/DNI</label>
+                    <div class="input-group">
+                        <input name="cuit" id="nuevo_cliente_cuit" class="form-control" type="text">
+                        <button title="Buscar en padron de afip" class="btn btn-secondary" type="button" id="searchCliente">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="text">CUIT/CUIL/DNI</label>
-                        <div class="input-group">
-                            <input name="cuit" id="nuevo_cliente_cuit" class="form-control" type="text">
-                            <button title="Buscar en padron de afip" class="btn btn-secondary" type="button" id="searchCliente">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </div>
+            </div>
+            <!-- Spinner element -->
+            <div id="spinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Buscando...
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label class="text">Domicilio</label>
+                    <input name="domicilio" id="nuevo_cliente_domicilio" class="form-control" type="text">
                 </div>
-                <!-- Spinner element -->
-                <div id="spinner" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i> Buscando...
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label class="text">Teléfono</label>
+                    <input name="telefono" class="form-control" type="text">
                 </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="text">Domicilio</label>
-                        <input name="domicilio" id="nuevo_cliente_domicilio" class="form-control" type="text">
-                    </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="text">Email</label>
+                    <input name="email" class="form-control" type="email">
                 </div>
-                <div class="row">
-                    <div class="col-12">
-                        <label class="text">Teléfono</label>
-                        <input name="telefono" class="form-control" type="text">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <label class="text">Email</label>
-                        <input name="email" class="form-control" type="email">
-                    </div>
-                </div>
-                
-                
-                <button class="btn btn-success">Guardar</button>
-                
-            </form>
-        </div>
+            </div>
+            
+            
+            <button class="btn btn-success">Guardar</button>
+            
+        </form>
     </div>
     
     

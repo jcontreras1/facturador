@@ -34,8 +34,8 @@ class ClienteController extends Controller
 
     public function dashboard(Cliente $cliente){
 
-        $facturas = $cliente->facturas;
-        return view('clientes.dashboard')->with(compact(['cliente', 'facturas']));
+        $comprobantes = $cliente->comprobantes()->orderBy('fecha', 'desc')->get();
+        return view('clientes.dashboard')->with(compact(['cliente', 'comprobantes']));
 
     }
 }

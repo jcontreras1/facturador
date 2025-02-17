@@ -1,12 +1,11 @@
 <x-app-layout>
-    <div class="container mx-auto px-4">
-        <div class="p-6 text-gray-900 dark:text-gray-100">
+    <div class="container">
+        <x-title title="Clientes" urlBack="{{route('home')}}" >
+            <a href="{{route('clientes.create')}}" class="btn btn-success">Agregar cliente</a>
+            <a href="{{route('clientes.create')}}" class="btn btn-success">Agregar cliente</a>
+        </x-title>
+
             
-            <h2 class=" mb-4 text-xl font-semibold d-flex justify-content-between">
-                Clientes
-                <a href="{{route('clientes.create')}}" class="btn btn-success">Agregar cliente</a>
-            </h2>
-            <hr>
             @if(count($clientes))
             <table class="table table-striped table-sm" id="tabla_clientes">
                 <thead>
