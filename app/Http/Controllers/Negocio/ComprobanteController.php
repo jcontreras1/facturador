@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\NuevoComprobante;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\IvaReceptor;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
@@ -23,6 +24,14 @@ class ComprobanteController extends Controller
         $condicionesIva = IvaReceptor::all();
         return view('comprobantes.createFacturaC', with([
             'condicionesIva' => $condicionesIva,
+        ]));
+    }
+
+    public function createFacturaCCliente(Cliente $cliente){
+        $condicionesIva = IvaReceptor::all();
+        return view('comprobantes.createFacturaC', with([
+            'condicionesIva' => $condicionesIva,
+            'cliente' => $cliente,
         ]));
     }
 

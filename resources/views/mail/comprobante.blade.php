@@ -6,7 +6,7 @@ Hola,
 
 En los adjuntos, encontrarás el comprobante <strong>{{ $comprobante->tipoComprobante->codigo . 
 '-' . 
-str_pad($comprobante->punto_venta, 8, '0', STR_PAD_LEFT) . 
+str_pad($comprobante->punto_venta, 5, '0', STR_PAD_LEFT) . 
 '-' . 
 str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) }}</strong> 
 emitida desde {{ config('app.name') }}.

@@ -28,7 +28,7 @@
             <div class="row">
                 <div class="col-12">
                     <label class="text">Domicilio</label>
-                    <input name="domicilio" id="nuevo_cliente_domicilio" class="form-control" type="text">
+                    <input name="direccion" id="nuevo_cliente_domicilio" class="form-control" type="text">
                 </div>
             </div>
             <div class="row">

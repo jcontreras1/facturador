@@ -15,9 +15,7 @@ class CController extends Controller
     public function store(Request $request){
         
         $afip = new Afip();
-
-        // return response($request, 500);
-
+        $cliente = $request->has('cliente') ? $request->cliente : null;
         DB::beginTransaction();
         try {
             $puntoVenta = variable_global('PUNTO_VENTA');
@@ -38,6 +36,7 @@ class CController extends Controller
                 'fecha_servicio_desde' => $request->concepto == '1' ? null : $request->fechaInicioServicios,
                 'fecha_servicio_hasta' => $request->concepto == '1' ? null : $request->fechaFinServicios,
                 'fecha_vencimiento_pago' => $request->concepto == '1' ? null : $request->fechaVencimientoPago,
+                'cliente_id' => $cliente,
             ]);
             
             foreach($request->lineas as $linea){

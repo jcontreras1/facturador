@@ -17,6 +17,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/comprobante/{comprobante}/descargar/pdf', [ComprobanteController::class, 'descargarPdf'])->name('comprobante.descargar.pdf');
     Route::post('comprobante/{comprobante}/enviar/mail', [ComprobanteController::class, 'enviarMail'])->name('comprobante.enviar.mail');
     Route::get('/comprobante/c', [ComprobanteController::class, 'createFacturaC'])->name('comprobante.create.c');
+    Route::get('/cliente/{cliente}/comprobante/c', [ComprobanteController::class, 'createFacturaCCliente'])->name('cliente.comprobante.create.c');
     // Route::post('/comprobante/c', [FacturaBController::class, 'facturar'])->name('comprobante.store.c');
     
     

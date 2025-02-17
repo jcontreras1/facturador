@@ -14,4 +14,4 @@ import facturac from './components/factura/c.vue';
 const app = createApp({});
 app.component('factura-c', facturac);
 
-app.mount('#main');
+app.mount('#app');

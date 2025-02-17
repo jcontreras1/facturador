@@ -1,30 +1,7 @@
 <x-app-layout>
-    {{-- @include('comprobantes.partials.enviarFacturaMail') --}}
     <!-- Modal -->
-    <div class="modal fade" id="modalEnviarFacturaMail" tabindex="-1" aria-labelledby="modalEnviarFacturaMailLabel">
-        <form id="formEnviarFacturaMail" method="post" action="" >
-            @csrf
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="modalEnviarFacturaMailLabel">Enviar por mail</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" id="modalMailCliente" class="form-control" name="email" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btnBloquear" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" id="btnSubmitEnviarFactura" class="btn btn-primary btnBloquear">Enviar</button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="container">
+    @include('comprobantes.partials.enviarFacturaMail')
+       <div class="container">
         <x-title title="Facturación">
             <a href="{{ route('comprobante.create.c') }}" class="btn btn-success">Nueva Factura C</a>
         </x-title>
