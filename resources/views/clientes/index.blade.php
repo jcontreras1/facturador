@@ -2,7 +2,6 @@
     <div class="container">
         <x-title title="Clientes" urlBack="{{route('home')}}" >
             <a href="{{route('clientes.create')}}" class="btn btn-success">Agregar cliente</a>
-            <a href="{{route('clientes.create')}}" class="btn btn-success">Agregar cliente</a>
         </x-title>
 
             

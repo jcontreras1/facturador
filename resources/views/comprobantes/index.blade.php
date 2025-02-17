@@ -1,7 +1,7 @@
 <x-app-layout>
     {{-- @include('comprobantes.partials.enviarFacturaMail') --}}
     <!-- Modal -->
-    <div class="modal fade" id="modalEnviarFacturaMail" tabindex="-1" aria-labelledby="modalEnviarFacturaMailLabel" aria-hidden="true">
+    <div class="modal fade" id="modalEnviarFacturaMail" tabindex="-1" aria-labelledby="modalEnviarFacturaMailLabel">
         <form id="formEnviarFacturaMail" method="post" action="" >
             @csrf
             <div class="modal-dialog">
@@ -13,7 +13,7 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="email" required>
+                            <input type="email" id="modalMailCliente" class="form-control" name="email" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -51,10 +51,8 @@
                     <td>{{ $comprobante->created_at->format('d/m/Y H:i') }}</td>
                     <td>
                         @if($comprobante->cliente)
-                        <a href="{{ route('clientes.dashboard', $comprobante->cliente) }}">
-                            <i class="fas fa-user text-warning"></i>
-                            {{ $comprobante->razon_social }}
-                        </a>
+                        <i class="fas fa-user text-warning"></i>&nbsp;
+                        <a href="{{ route('clientes.dashboard', $comprobante->cliente) }}">{{ $comprobante->cliente->nombre }}</a>
                         @else
                         {{ $comprobante->razon_social ?? 'Cons. Final' }}
                         @endif
@@ -64,7 +62,7 @@
                         @if($comprobante->cae)
                         <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-warning btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <button 
-                        onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}', @if($comprobante->cliente) '{{$comprobante->cliente->email}}' @else null @endif" 
+                        onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}', '{{$comprobante->cliente?->email}}')" 
                         data-bs-toggle="modal" data-bs-target="#modalEnviarFacturaMail" class="btn btn-info btn-sm" title="Enviar por Email"><i class="far fa-envelope"></i></button>
                         {{-- <a href="{{ route('facturacion.show', $comprobante) }}" class="btn btn-primary">Ver</a> --}}
                         @endif
@@ -85,7 +83,7 @@
         const btnSubmitEnviarFactura =document.getElementById('btnSubmitEnviarFactura');
         
         function urlEnviarMail(url, mail){
-            console.log(mail);
+            document.getElementById('modalMailCliente').value = mail;
             document.getElementById('formEnviarFacturaMail').action = url;
         }
         
