@@ -37,14 +37,30 @@ class ContribuyenteController extends Controller
             }        
             
             
-        }else{
+        }elseif($request->tipo == 'cuit'){
             info('Consultando por CUIT/CUIL');
             try {
                 $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($doc);
             } catch (\Throwable $th) {
                 return response(['error' => $th->getMessage()], 500);
             }
+        }elseif(!$request->has('tipo')){
+            if(strlen($doc) == 11){
+                try {
+                    $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($doc);
+                } catch (\Throwable $th) {
+                    return response(['error' => $th->getMessage()], 500);
+                }
+            }else{
+                try {
+                    $contribuyente = $afip->PadronAlcance13->DniACuit($doc);
+                    $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($contribuyente);
+                } catch (\Throwable $th) {
+                    return response(['error' => $th->getMessage()], 500);
+                }
+            }
         }
+        
         
         if(!$contribuyente){
             $tipoDoc = $request->tipo == 'dni' ? 'DNI' : 'CUIT/CUIL';

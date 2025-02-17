@@ -20,13 +20,22 @@
                 <div class="row">
                     <div class="col-12">
                         <label class="text">CUIT/CUIL/DNI</label>
-                        <input name="cuit" id="nuevo_cliente_cuit" class="form-control" type="text">
+                        <div class="input-group">
+                            <input name="cuit" id="nuevo_cliente_cuit" class="form-control" type="text">
+                            <button title="Buscar en padron de afip" class="btn btn-secondary" type="button" id="searchCliente">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </div>
+                </div>
+                <!-- Spinner element -->
+                <div id="spinner" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Buscando...
                 </div>
                 <div class="row">
                     <div class="col-12">
                         <label class="text">Domicilio</label>
-                        <input name="domicilio" class="form-control" type="text">
+                        <input name="domicilio" id="nuevo_cliente_domicilio" class="form-control" type="text">
                     </div>
                 </div>
                 <div class="row">
@@ -41,7 +50,8 @@
                         <input name="email" class="form-control" type="email">
                     </div>
                 </div>
-
+                
+                
                 <button class="btn btn-success">Guardar</button>
                 
             </form>
@@ -51,7 +61,36 @@
     
     @push('scripts')
     <script>
-        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchCliente').addEventListener('click', async function(){
+                let cuit = document.getElementById('nuevo_cliente_cuit').value;
+                if(!cuit)
+                return;
+                
+                let url = `/api/contribuyente/${cuit}`;
+                let spinner = document.getElementById('spinner');
+                
+                try {
+                    spinner.style.display = 'block'; // Show spinner
+                    const response = await axios.get(url);
+                    if(response.status === 200) {
+                        let data = response.data;
+                        document.getElementById('nuevo_cliente_razon_social').value = data.razonSocial;
+                        document.getElementById('nuevo_cliente_domicilio').value = data.domicilio;
+                    }
+                } catch (error) {
+                    console.log(error);
+                    let msgError = error.response.data.error ?? 'No se encontró el usuario con el documento ingresado.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: msgError,
+                    });
+                } finally {
+                    spinner.style.display = 'none'; // Hide spinner
+                }
+            });
+        });
     </script>
     @endpush
 </x-app-layout>
