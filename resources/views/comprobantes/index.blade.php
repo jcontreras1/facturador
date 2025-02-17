@@ -1,12 +1,36 @@
 <x-app-layout>
-    @include('comprobantes.partials.enviarFacturaMail')
+    {{-- @include('comprobantes.partials.enviarFacturaMail') --}}
+    <!-- Modal -->
+    <div class="modal fade" id="modalEnviarFacturaMail" tabindex="-1" aria-labelledby="modalEnviarFacturaMailLabel" aria-hidden="true">
+        <form id="formEnviarFacturaMail" method="post" action="" >
+            @csrf
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="modalEnviarFacturaMailLabel">Enviar por mail</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btnBloquear" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" id="btnSubmitEnviarFactura" class="btn btn-primary btnBloquear">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
     <div class="container">
         <x-title title="Facturación">
             <a href="{{ route('comprobante.create.c') }}" class="btn btn-success">Nueva Factura C</a>
         </x-title>
         
         @if(count($comprobantes) == 0)
-            <em>No hay comprobantes para mostrar</em>
+        <em>No hay comprobantes para mostrar</em>
         @else
         <table class="table table-striped">
             <thead>
@@ -25,7 +49,7 @@
                     <td>{{ $comprobante->tipoComprobante?->descripcion }}</td>
                     <td>{{ $comprobante->nro_comprobante ? str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) : 'S/N' }}</td>
                     <td>{{ $comprobante->created_at->format('d/m/Y H:i') }}</td>
-                    <td>{{ $comprobante->cliente_id ? $comprobante->cliente->nombre : 'Cons. Final' }}</td>
+                    <td>{{ $comprobante->razon_social ?? 'Cons. Final' }}</td>
                     <td>${{ pesosargentinos($comprobante->importe_total) }}</td>
                     <td class="d-flex gap-1">
                         @if($comprobante->cae)
@@ -40,21 +64,26 @@
         </table>
         {{ $comprobantes->links() }}
         @endif
-
+        
         
     </div>
     
     @push('scripts')
     <script>
-        const form = document.querySelector('#formEnviarFacturaMail');
         const btns = document.querySelectorAll('.btnBloquear');
-        const btnSubmitEnviarFactura = document.querySelector('#btnSubmitEnviarFactura');
-        const urlEnviarMail = (url) => {
-            form.action = url;
+        const btnSubmitEnviarFactura =document.getElementById('btnSubmitEnviarFactura');
+
+        function urlEnviarMail(url){
+            document.getElementById('formEnviarFacturaMail').action = url;
         }
-        form.addEventListener('submit', () => {
+
+        btnSubmitEnviarFactura.addEventListener('click', (e) => {
+            console.log(e);
+            e.preventDefault();
             btns.forEach(btn => btn.disabled = true);
             btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            form.submit();
+            
         });
     </script>
     @endpush

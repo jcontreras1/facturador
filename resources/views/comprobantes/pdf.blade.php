@@ -4,127 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factura AFIP</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            margin: 0;
-            padding: 0;
-            height: 100%; /* Asegura que el cuerpo ocupe toda la altura de la página */
-            
-        }
-        .container {
-            width: 100%;
-            padding: 10px;
-            margin: 0 auto;
-            min-height: 100vh; /* Ocupa toda la altura de la página */
-            position: relative; /* Necesario para usar posicionamiento absoluto en el pie */
-        }
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            margin: 0;
-        }
-        .header .details {
-            font-size: 10px;
-            text-align: left;
-        }
-        .invoice-info {
-            margin-bottom: 20px;
-        }
-        .invoice-info .invoice-header {
-            display: table;
-            width: 100%;
-        }
-        .invoice-info .invoice-header div {
-            width: 45%;
-            display: inline-block;
-        }
-        .invoice-info .invoice-header div strong {
-            font-size: 12px;
-        }
-        .item-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .item-table th, .item-table td {
-            border: 1px solid #000;
-            padding: 5px;
-            text-align: center;
-        }
-        .item-table th {
-            background-color: #f2f2f2;
-        }
-        .total {
-            text-align: right;
-            margin-top: 20px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 10px;
-        }
-        /* Ajuste de tabla de encabezado con logo */
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-        .header-table td {
-            vertical-align: middle;
-            padding: 5px;
-        }
-        .header-table .left-column {
-            width: 46%;
-        }
-        .header-table .middle-column {
-            width: 8%;
-            text-align: center;
-        }
-        .header-table .right-column {
-            width: 46%;
-            text-align: right;
-        }
-        .header-table img {
-            max-height: 64px;
-        }
-        
-        /* Estilo generico bordeado */
-        .bordered-container {
-            border: 1px solid #000;
-            padding: 10px;
-            margin-top: 15px;
-            width: 100%;
-            font-size: 10px; 
-        }
-        /* Estilo para el cuadro de los totales */
-        .total-container {
-            border: 1px solid #000;
-            margin-top: 10px;
-            width: 100%;
-            text-align: right;
-        }
-        .total-container p {
-            margin: 5px 0;
-            padding: 10px;
-        }
-        .total-container .total-label {
-            font-weight: bold;
-        }
-        
-        .ultra-footer {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            border-top: 1px solid #000;
-            padding-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ public_path('assets/css/pdf.css') }}">
 </head>
 <body>
     
@@ -175,99 +55,101 @@
                 <td></td>
                 <td class="right-column" style="padding-left: 10px;">
                     <p><strong>Punto de Venta: {{ str_pad(variable_global('PUNTO_VENTA'), 5, '0', STR_PAD_LEFT) }} 
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                        &nbsp;&nbsp;&nbsp;
                         Comp. Nro: {{ str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) }}</strong></p>
-                    <p><strong>Fecha de emisión:</strong> {{ $comprobante->created_at->format('d/m/Y') }}</p>
-                    <p>
-                        
-                        <strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}
-                        <br>
-                        @if(variable_global('FECHA_INICIO_ACTIVIDADES') !== '')
-                        <strong>Fecha de inicio de Actividades:</strong> {{ date('d/m/Y', strtotime(variable_global('FECHA_INICIO_ACTIVIDADES'))) }}
-                        @endif
-                    </p>
-                </td>
-            </tr>
-        </table>
-
-        <div class="bordered-container">
-          
-            <strong>Apellido y Nombre o Razón Social: </strong> {{$comprobante->razon_social}}<br>
-                        <strong>CUIT: </strong> {{$comprobante->cuit}}<br> 
-                        <strong>Domicilio: </strong> {{$comprobante->domicilio}}    <br>
-        </div>
-        
-        <!-- Tabla de productos -->
-        <table class="item-table">
-            <thead>
-                <tr>
-                    <th>Descripción</th>
-                    <th>Cantidad</th>
-                    <th>U. Medida</th>
-                    <th>Precio Unit.</th>
-                    <th>% Bonif.</th>
-                    <th>Imp. Bonif.</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($comprobante->detalle as $item)  
-                <tr>
-                    <td>
-                        @if($item->codigo)
-                        [{{$item->codigo}}]
-                        @endif
-                        {{$item->descripcion}}
-                    </td>
-                    <td>{{$item->cantidad}}</td>
-                    <td>{{$item->unidad_medida}}</td>
-                    <td>{{pesosargentinos($item->importe_unitario)}}</td>
-                    <td>{{$item->porcentaje_descuento}}</td>
-                    <td>{{pesosargentinos($item->importe_descuento)}}</td>
-                    <td>{{pesosargentinos($item->importe_subtotal)}}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        
-        <!-- Pie de la factura -->
-        <!-- Total de la factura en un cuadro -->
-        <div class="ultra-footer">
-            <div class="total-container">
-                <p>
-                    <span class="total-label">Subtotal:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_neto)}}</span>
-                    <br>
-                    <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
-                    <br>
-                    <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
-                </p>
-            </div>
-            
-            <div class="footer">
-                <table style="width: 100%;">
-                    <tr>
-                        <td style="width: 25%; text-align: left;">
-                            <img src="{!! imgBase64QRFactura($comprobante) !!}" alt="QR" />
-                        </td>
-                        <td style="width: 40%; text-align: left;">
-                            <img width="80" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
-                            <br>
-                            Comprobante autorizado
-                        </td>
-                        <td style="width: 35%; text-align: right;">
-                            <strong>CAE Nº: </strong> {{$comprobante->cae}}<br>
+                        <p><strong>Fecha de emisión:</strong> {{ $comprobante->created_at->format('d/m/Y') }}</p>
+                        <p>
                             
-                            <strong>Fecha de Vto. de CAE: </strong> 
-                            @if($comprobante->fecha_vencimiento_cae)
-                            {{Carbon\Carbon::parse($comprobante->fecha_vencimiento_cae)->format('d/m/Y')}}<br>
+                            <strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}
+                            <br>
+                            @if(variable_global('FECHA_INICIO_ACTIVIDADES') !== '')
+                            <strong>Fecha de inicio de Actividades:</strong> {{ date('d/m/Y', strtotime(variable_global('FECHA_INICIO_ACTIVIDADES'))) }}
                             @endif
-                        </td>
-                    </tr>
-                </table>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            
+            <div class="bordered-container">
+                <strong>Condición IVA: </strong> {{$comprobante->condicionIvaReceptor?->descripcion}}
+                <br>
+                <strong>Apellido y Nombre o Razón Social: </strong> {{$comprobante->razon_social}}
+                <br>
+                <strong>CUIT: </strong> {{$comprobante->cuit_dni}}
+                <br>
+                <strong>Domicilio: </strong> {{$comprobante->domicilio}}<br>
             </div>
             
+            <!-- Tabla de productos -->
+            <table class="item-table">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>U. Medida</th>
+                        <th>Precio Unit.</th>
+                        <th>% Bonif.</th>
+                        <th>Imp. Bonif.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($comprobante->detalle as $item)  
+                    <tr>
+                        <td>
+                            @if($item->codigo)
+                            [{{$item->codigo}}]
+                            @endif
+                            {{$item->descripcion}}
+                        </td>
+                        <td>{{$item->cantidad}}</td>
+                        <td>{{$item->unidad_medida}}</td>
+                        <td>{{pesosargentinos($item->importe_unitario)}}</td>
+                        <td>{{$item->porcentaje_descuento}}</td>
+                        <td>{{pesosargentinos($item->importe_descuento)}}</td>
+                        <td>{{pesosargentinos($item->importe_subtotal)}}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            
+            <!-- Pie de la factura -->
+            <!-- Total de la factura en un cuadro -->
+            <div class="ultra-footer">
+                <div class="total-container">
+                        <span class="total-label">Subtotal:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_neto)}}</span>
+                        <br>
+                        <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
+                        <br>
+                        <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
+                </div>
+                
+                <div class="footer">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 25%; text-align: left;">
+                                <img src="{!! imgBase64QRFactura($comprobante) !!}" alt="QR" />
+                            </td>
+                            <td style="width: 40%; text-align: left;">
+                                <img width="80" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
+                                <br>
+                                Comprobante autorizado
+                            </td>
+                            <td style="width: 35%; text-align: right;">
+                                <strong>CAE Nº: </strong> {{$comprobante->cae}}<br>
+                                
+                                <strong>Fecha de Vto. de CAE: </strong> 
+                                @if($comprobante->fecha_vencimiento_cae)
+                                {{Carbon\Carbon::parse($comprobante->fecha_vencimiento_cae)->format('d/m/Y')}}<br>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+            </div>
         </div>
-    </div>
+        
+    </body>
+    </html>
     
-</body>
-</html>

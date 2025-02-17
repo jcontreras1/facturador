@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Negocio;
 
 use App\Http\Controllers\Controller;
+use App\Mail\NuevoComprobante;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\IvaReceptor;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
+
 
 class ComprobanteController extends Controller
 {
@@ -24,8 +27,15 @@ class ComprobanteController extends Controller
     }
 
     public function descargarPdf(Comprobante $comprobante){
-        return view('comprobantes.pdf', ['comprobante' => $comprobante]);
+        // return view('comprobantes.pdf', ['comprobante' => $comprobante]);
         $pdf = PDF::loadView('comprobantes.pdf', ['comprobante' => $comprobante]);
         return $pdf->download('Comprobante ' . $comprobante->nro_comprobante . '.pdf');
+    }
+
+    
+    public function enviarMail(Comprobante $comprobante, Request $request){
+        Mail::to($request->email)->send(new NuevoComprobante($comprobante));
+        toast('Mail enviado correctamente', 'success')->autoClose(1500);
+        return redirect()->back();
     }
 }
