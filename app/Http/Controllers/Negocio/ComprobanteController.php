@@ -47,4 +47,6 @@ class ComprobanteController extends Controller
         toast('Mail enviado correctamente', 'success')->autoClose(1500);
         return redirect()->back();
     }
+
+   
 }

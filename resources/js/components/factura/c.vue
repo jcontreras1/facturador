@@ -146,7 +146,7 @@ const form = reactive({
   documento: '',
   razonSocial: '',
   domicilio: '',
-  tipoComprobanteId : 11, //factura C
+  //tipoComprobanteId : 11, //factura C
   condicionIva: 7,
   concepto: '2',
   fecha: new Date().toISOString().split('T')[0],

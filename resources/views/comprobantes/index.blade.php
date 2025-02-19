@@ -2,7 +2,7 @@
     <!-- Modal -->
     @include('comprobantes.partials.enviarFacturaMail')
        <div class="container">
-        <x-title title="Facturación">
+        <x-title title="Comprobatntes">
             <a href="{{ route('comprobante.create.c') }}" class="btn btn-success">Nueva Factura C</a>
         </x-title>
         
@@ -37,11 +37,20 @@
                     <td>${{ pesosargentinos($comprobante->importe_total) }}</td>
                     <td class="d-flex gap-1">
                         @if($comprobante->cae)
-                        <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-warning btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
+                        <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-primary btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <button 
                         onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}', '{{$comprobante->cliente?->email}}')" 
-                        data-bs-toggle="modal" data-bs-target="#modalEnviarFacturaMail" class="btn btn-info btn-sm" title="Enviar por Email"><i class="far fa-envelope"></i></button>
+                        data-bs-toggle="modal" data-bs-target="#modalEnviarFacturaMail" 
+                        class="btn btn-primary btn-sm" title="Enviar por Email"><i class="far fa-envelope"></i></button>
                         {{-- <a href="{{ route('facturacion.show', $comprobante) }}" class="btn btn-primary">Ver</a> --}}
+                        @if($comprobante->anulacion_id == null && $comprobante->tipoComprobante?->codigo !== 'CC')
+                        <button 
+                        onclick="anularFactura(
+                        '{{route('comprobante.anular', $comprobante)}}',
+                        '{{$comprobante->id}}',
+                        '{{str_pad( $comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT)}}'
+                        )" class="btn btn-danger btn-sm" title="anular"><i class="fas fa-ban"></i></button>
+                        @endif
                         @endif
                     </td>
                 </tr>
@@ -51,27 +60,50 @@
         {{ $comprobantes->links() }}
         @endif
         
+        <form id="formAnularFactura" method="POST" style="display: none;">
+            @csrf
+        </form>
         
     </div>
     
     @push('scripts')
     <script>
-        const btns = document.querySelectorAll('.btnBloquear');
-        const btnSubmitEnviarFactura =document.getElementById('btnSubmitEnviarFactura');
-        
-        function urlEnviarMail(url, mail){
-            document.getElementById('modalMailCliente').value = mail;
-            document.getElementById('formEnviarFacturaMail').action = url;
-        }
-        
-        btnSubmitEnviarFactura.addEventListener('click', (e) => {
-            console.log(e);
-            e.preventDefault();
-            btns.forEach(btn => btn.disabled = true);
-            btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            form.submit();
+        // document.addEventListener('DOMContentLoaded', function() {
+            const btns = document.querySelectorAll('.btnBloquear');
+            const btnSubmitEnviarFactura = document.getElementById('btnSubmitEnviarFactura');
             
-        });
+
+            function anularFactura (url, id, numero){
+                Swal.fire({
+                    title: 'Anular Factura',
+                    text: `¿Anular la factura N° ${numero}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Anular',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.getElementById('formAnularFactura');
+                        form.action = url;
+                        form.submit();            
+                    }
+                });
+            }
+
+            function urlEnviarMail(url, mail) {
+                document.getElementById('modalMailCliente').value = mail;
+                document.getElementById('formEnviarFacturaMail').action = url;
+            }
+
+            btnSubmitEnviarFactura.addEventListener('click', (e) => {
+                console.log(e);
+                e.preventDefault();
+                btns.forEach(btn => btn.disabled = true);
+                btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                form.submit();
+            });
+        // });
+        
     </script>
     @endpush
 </x-app-layout>

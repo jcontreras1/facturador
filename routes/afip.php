@@ -1,10 +1,9 @@
 <?php
 use App\Http\Controllers\InstallationController;
+use App\Http\Controllers\Negocio\Comprobante\NC\NCCController;
 use App\Http\Controllers\Negocio\ComprobanteController;
 use App\Http\Controllers\Negocio\ContribuyenteController;
-// use App\Http\Controllers\Negocio\FacturaBController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 Route::middleware(['auth'])->group(function () {
     
@@ -16,12 +15,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/comprobantes', [ComprobanteController::class, 'index'])->name('comprobantes.index');
     Route::get('/comprobante/{comprobante}/descargar/pdf', [ComprobanteController::class, 'descargarPdf'])->name('comprobante.descargar.pdf');
     Route::post('comprobante/{comprobante}/enviar/mail', [ComprobanteController::class, 'enviarMail'])->name('comprobante.enviar.mail');
+    Route::post('comprobante/{comprobante}/anular', [NCCController::class, 'anular'])->name('comprobante.anular');
     Route::get('/comprobante/c', [ComprobanteController::class, 'createFacturaC'])->name('comprobante.create.c');
     Route::get('/cliente/{cliente}/comprobante/c', [ComprobanteController::class, 'createFacturaCCliente'])->name('cliente.comprobante.create.c');
     // Route::post('/comprobante/c', [FacturaBController::class, 'facturar'])->name('comprobante.store.c');
     
-    
-    Route::get('/test', [ContribuyenteController::class, 'padronv4']);
+        Route::get('/test', [ContribuyenteController::class, 'padronv4']);
     
     
 });

@@ -46,28 +46,29 @@
                 </tr>
                 @endforeach
             </tbody>
-            @endif
+        </table>
+        @endif
+    </div>
+    
+    
+    @push('scripts')
+    <script>
+        const btns = document.querySelectorAll('.btnBloquear');
+        const btnSubmitEnviarFactura =document.getElementById('btnSubmitEnviarFactura');
+        
+        function urlEnviarMail(url, mail){
+            document.getElementById('modalMailCliente').value = mail;
+            document.getElementById('formEnviarFacturaMail').action = url;
+        }
+        
+        btnSubmitEnviarFactura.addEventListener('click', (e) => {
+            console.log(e);
+            e.preventDefault();
+            btns.forEach(btn => btn.disabled = true);
+            btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            form.submit();
             
-            
-            
-            @push('scripts')
-            <script>
-                const btns = document.querySelectorAll('.btnBloquear');
-                const btnSubmitEnviarFactura =document.getElementById('btnSubmitEnviarFactura');
-                
-                function urlEnviarMail(url, mail){
-                    document.getElementById('modalMailCliente').value = mail;
-                    document.getElementById('formEnviarFacturaMail').action = url;
-                }
-                
-                btnSubmitEnviarFactura.addEventListener('click', (e) => {
-                    console.log(e);
-                    e.preventDefault();
-                    btns.forEach(btn => btn.disabled = true);
-                    btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-                    form.submit();
-                    
-                });
-                </script>
-        @endpush
-    </x-app-layout>
+        });
+    </script>
+    @endpush
+</x-app-layout>

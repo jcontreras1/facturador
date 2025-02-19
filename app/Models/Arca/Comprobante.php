@@ -40,7 +40,7 @@ class Comprobante extends Model
 
     public function tipoComprobante()
     {
-        return $this->belongsTo(TipoComprobante::class, 'tipo_comprobante_id', 'codigo_afip');
+        return $this->belongsTo(TipoComprobante::class, 'tipo_comprobante_id', 'id');
     }
 
     

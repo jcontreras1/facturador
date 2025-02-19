@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class CController extends Controller
 {
     public function store(Request $request){
-        
+        $tipoComprobante = Comprobante::where('codigo', 'C')->first();
         $afip = new Afip();
         $cliente = $request->has('cliente') ? $request->cliente : null;
         DB::beginTransaction();
@@ -25,7 +25,7 @@ class CController extends Controller
                 'cuit_dni' => $request->documento,
                 'razon_social' => $request->razonSocial,
                 'domicilio' => $request->domicilio,
-                'tipo_comprobante_id' => $request->tipoComprobanteId,
+                'tipo_comprobante_id' => $tipoComprobante->id,
                 'punto_venta' => $puntoVenta,
                 'created_by' => auth()->user()->id,
                 'importe_neto' => $request->importeNeto,
@@ -54,13 +54,13 @@ class CController extends Controller
 
             //ARCA
             
-            $numeroComprobante = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, $request->tipoComprobanteId);
+            $numeroComprobante = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, $tipoComprobante->codigo_afip);
             $numeroComprobante++;
 
             $data = [
                 'CantReg' => 1,
                 'PtoVta' => intval($puntoVenta),
-                'CbteTipo' => intval($request->tipoComprobanteId),
+                'CbteTipo' => intval($tipoComprobante->codigo_afip),
                 'Concepto' => intval($request->concepto),
                 'DocTipo' => intval($request->tipoDocumentoId),
                 'DocNro' => $request->documento ? intval($request->documento) : 0,
