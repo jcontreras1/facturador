@@ -30,16 +30,15 @@
                 <td class="middle-column">
                     <table style="width: 100%; text-align: center;">
                         <tr>
-                            <td style="border: 1px solid black;"><h1>{{ strtoupper($comprobante->tipoComprobante->codigo) }}</h1></td>
+                            <td style="border: 1px solid black;"><h1>{{ strtoupper($comprobante->tipoComprobante->letra) }}</h1></td>
                         </tr>
                         <tr>
                             <td><strong>Cod. {{ str_pad($comprobante->tipoComprobante->codigo_afip, 2, '0', STR_PAD_LEFT) }}</strong></td>
                         </tr>
                     </table>
                 </td>
-                <!-- Columna derecha con título FACTURA -->
                 <td class="right-column">
-                    <h1>FACTURA</h1>
+                    <h1>{{ tipo_comprobante($comprobante) }}</h1>
                 </td>
             </tr>
             <tr>

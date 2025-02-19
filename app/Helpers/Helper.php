@@ -137,3 +137,64 @@ function datosContribuyente($contribuyenteObject){
 			$contribuyenteObject->domicilio[count($contribuyenteObject->domicilio) - 1]->descripcionProvincia,
 	];
 }
+
+//nombre del comprobante
+function titulo_comprobante(Comprobante $comprobante){
+	return 
+		strtoupper($comprobante->tipoComprobante->letra) . 
+        '-' . str_pad($comprobante->punto_venta, 5, '0', STR_PAD_LEFT) . '-' . 
+        str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT);
+}
+
+//Titulo en mayúsuclas para los comprobantes en pdf, basados en el código de AFIP (que se supone que no cambia)
+function tipo_comprobante(Comprobante $comprobante){
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [1, 6, 11, 51, 52])){
+		return 'FACTURA';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [2, 7, 12, 53, 54])){
+		return 'NOTA DE DÉBITO';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [3, 8, 13, 55, 56])){
+		return 'NOTA DE CRÉDITO';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [4, 9, 15, 58])){
+		return 'RECIBO';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [5, 10, 16, 59])){
+		return 'NOTA DE VENTA AL CONTADO';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [19])){
+		return 'FACTURA DE CRÉDITO ELECTRÓNICA';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [20])){
+		return 'FACTURA DE VENTA DE BIENES USADOS';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [21])){
+		return 'FACTURA DE VENTA DE COSAS MUEBLES';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [22])){
+		return 'LIQUIDACIÓN DE COMPRA';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [23])){
+		return 'LIQUIDACIÓN DE COMPRA DE BIENES USADOS';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [24])){
+		return 'LIQUIDACIÓN DE COMPRA DE COSAS MUEBLES';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [25])){
+		return 'FACTURA DE EXPORTACIÓN';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [26])){
+		return 'NOTA DE DÉBITO DE EXPORTACIÓN';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [27])){
+		return 'NOTA DE CRÉDITO DE EXPORTACIÓN';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [28])){
+		return 'RECIBO DE EXPORTACIÓN';
+	}
+	if(in_array($comprobante->tipoComprobante->codigo_afip, [29])){
+		return 'NOTA DE VENTA DE BIENES USADOS DE EXPORTACIÓN';
+	}
+	return 'COMPROBANTE';
+}

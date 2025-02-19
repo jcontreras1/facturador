@@ -4,11 +4,7 @@
 Hola, 
 
 
-En los adjuntos, encontrarás el comprobante <strong>{{ $comprobante->tipoComprobante->codigo . 
-'-' . 
-str_pad($comprobante->punto_venta, 5, '0', STR_PAD_LEFT) . 
-'-' . 
-str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) }}</strong> 
+En los adjuntos, encontrarás el comprobante <strong>{{ titulo_comprobante($comprobante) }}</strong> 
 emitida desde {{ config('app.name') }}.
 
 No es necesario responder a este correo. Si tienes alguna pregunta, por favor, contacta a nuestro equipo de soporte en 
