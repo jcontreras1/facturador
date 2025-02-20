@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Negocio;
 use App\Http\Controllers\AfipWS\Afip;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\Arca\Comprobante;
+use App\Models\Arca\TipoComprobante;
 use Illuminate\Http\Request;
 
 
 class ContribuyenteController extends Controller
 {
     public function padronv4(){
+        $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
+        return response($tipoComprobante, 201);
         $afip = new Afip();
         $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails(30670501813);
         dd($contribuyente);
@@ -22,7 +26,6 @@ class ContribuyenteController extends Controller
         
     }
     public function infoContribuyente(Request $request, $doc){
-        info('Consultando datos del contribuyente');
         if(trim($doc) == ''){
             return response(['error' => 'Debe ingresar un número de documento'], 400);
         }
@@ -38,7 +41,6 @@ class ContribuyenteController extends Controller
             
             
         }elseif($request->tipo == 'cuit'){
-            info('Consultando por CUIT/CUIL');
             try {
                 $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($doc);
             } catch (\Throwable $th) {

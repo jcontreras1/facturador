@@ -6,6 +6,7 @@ use App\Http\Controllers\AfipWS\Afip;
 use App\Http\Controllers\Controller;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\DetalleComprobante;
+use App\Models\Arca\TipoComprobante;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +14,9 @@ use Illuminate\Support\Facades\DB;
 class CController extends Controller
 {
     public function store(Request $request){
-        $tipoComprobante = Comprobante::where('codigo', 'C')->first();
+        $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
         $afip = new Afip();
-        $cliente = $request->has('cliente') ? $request->cliente : null;
+        $cliente = $request->has('cliente') && $request->cliente ? $request->cliente : null;
         DB::beginTransaction();
         try {
             $puntoVenta = variable_global('PUNTO_VENTA');

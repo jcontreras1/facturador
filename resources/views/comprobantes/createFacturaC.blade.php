@@ -1,5 +1,7 @@
 <x-app-layout>
-    <div class="container">
-          <factura-c :cliente="{{ $cliente ?? null }}" :condiciones-iva="{{ $condicionesIva }}"></factura-c>  
+    <div id="app">
+        <div class="container">
+            <factura-c :cliente="{{ $cliente ?? null }}" :condiciones-iva="{{ $condicionesIva }}"></factura-c>  
+        </div>
     </div>
 </x-app-layout>

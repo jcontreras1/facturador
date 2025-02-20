@@ -18,10 +18,7 @@
     <body>
         @include('layouts.navigation')
         <!-- Page Content -->
-        <div id="app">
-
-            {{ $slot }}
-        </div>
+        {{ $slot }}
         @include('sweetalert::alert')
         @stack('scripts')
     </body>
