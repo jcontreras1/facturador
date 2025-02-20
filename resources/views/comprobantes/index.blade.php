@@ -3,7 +3,12 @@
     @include('comprobantes.partials.enviarFacturaMail')
        <div class="container">
         <x-title title="Comprobatntes">
-            <a href="{{ route('comprobante.create.c') }}" class="btn btn-success">Nueva Factura C</a>
+            <a href="{{ route('lote.create.c') }}" class="btn btn-success">
+                <i class="fas fa-user-secret"></i> Facturar C por Monto
+            </a>
+            <a href="{{ route('comprobante.create.c') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nueva Factura C
+            </a>
         </x-title>
         
         @if(count($comprobantes) == 0)

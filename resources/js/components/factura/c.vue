@@ -123,7 +123,7 @@
       <button type="submit" class="btn btn-success mt-3 float-end">Emitir Comprobante</button>
       
       <div class="mt-3">
-        <h4>Total: $<span>{{ importeTotal }}</span></h4>
+        <h4>Total: <span>{{ importeTotalFormatoArgentino }}</span></h4>
       </div>
     </form>
     
@@ -165,6 +165,10 @@ const isLoading = ref(false)
 // Propiedad computada para el importe total
 const importeTotal = computed(() => {
   return lineas.value.reduce((acc, linea) => acc + linea.subtotal, 0).toFixed(2)
+})
+
+const importeTotalFormatoArgentino = computed(() => {
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(importeTotal.value)
 })
 
 // Computed property to disable document input for "Consumidor Final"

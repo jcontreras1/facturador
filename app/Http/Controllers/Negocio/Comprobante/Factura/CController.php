@@ -107,7 +107,9 @@ class CController extends Controller
 
         return response()->json(['message' => 'Comprobante guardado correctamente'], 201);
 
+    }
 
-
+    public function storeLoteFacturasC(Request $request){
+        
     }
 }

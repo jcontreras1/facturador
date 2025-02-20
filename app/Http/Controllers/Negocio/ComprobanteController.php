@@ -27,6 +27,13 @@ public function createFacturaC(){
     ]));
 }
 
+public function createLoteFacturasC(){
+    $condicionesIva = IvaReceptor::all();
+    return view('comprobantes.createLoteFacturasC', with([
+        'condicionesIva' => $condicionesIva,
+    ]));
+}
+
 public function createFacturaCCliente(Cliente $cliente){
     $condicionesIva = IvaReceptor::all();
     return view('comprobantes.createFacturaC', with([

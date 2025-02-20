@@ -83,5 +83,12 @@ class DatabaseSeeder extends Seeder
             // 'valor' => ''
         ]);
 
+        VariableGlobal::updateOrCreate([
+            'clave' => 'TOPE_FACTURACION_CONSUMIDOR_FINAL',
+            'descripcion' => 'Tope de facturación para responsable inscripto',
+        ], [
+            'valor' => '417000'
+        ]);
+
     }
 }

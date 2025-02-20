@@ -21,6 +21,9 @@ function obj_variable_global($clave){
 }
 
 function pesosargentinos($importe){
+	if (is_string($importe)) {
+		$importe = floatval($importe);
+	}
 	return number_format($importe, 2, ',', '.');
 }
 
