@@ -75,7 +75,6 @@
     <script>
         // document.addEventListener('DOMContentLoaded', function() {
             const btns = document.querySelectorAll('.btnBloquear');
-            const btnSubmitEnviarFactura = document.getElementById('btnSubmitEnviarFactura');
             
 
             function anularFactura (url, id, numero){
@@ -88,7 +87,7 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        const form = document.getElementById('formAnularFactura');
+                        let form = document.getElementById('formAnularFactura');
                         form.action = url;
                         form.submit();            
                     }
@@ -99,12 +98,12 @@
                 document.getElementById('modalMailCliente').value = mail;
                 document.getElementById('formEnviarFacturaMail').action = url;
             }
-
+            btnSubmitEnviarFactura = document.getElementById('btnSubmitEnviarFactura');
             btnSubmitEnviarFactura.addEventListener('click', (e) => {
-                console.log(e);
                 e.preventDefault();
                 btns.forEach(btn => btn.disabled = true);
                 btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                let form = document.getElementById('formEnviarFacturaMail');
                 form.submit();
             });
         // });

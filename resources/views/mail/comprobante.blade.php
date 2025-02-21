@@ -4,11 +4,10 @@
 Hola, 
 
 
-En los adjuntos, encontrarás el comprobante <strong>{{ titulo_comprobante($comprobante) }}</strong> 
+Te adjuntamos tu {{$comprobante->tipoComprobante->descripcion}}: <strong>{{ titulo_comprobante($comprobante) }}</strong> 
 emitida desde {{ config('app.name') }}.
 
-No es necesario responder a este correo. Si tienes alguna pregunta, por favor, contacta a nuestro equipo de soporte en 
-{{ config('mail.from.address') }}.
+Este es un mensaje generado de forma automática. No es necesario responder.
  
 Gracias,<br>
 {{ config('app.name') }}

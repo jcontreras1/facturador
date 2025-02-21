@@ -117,6 +117,11 @@ function imgBase64QRFactura(Comprobante $comprobante){
 	// return $qr;
 }
 
+// Functión para determinar si el usuario logeado es monotributista
+function esMonotributista(){
+	return str_contains(strtolower(variable_global('CONDICION_IVA')), 'monotrib');
+}
+
 function transformarFechaAfip($fecha_afip){
 	// Crear una instancia de Carbon a partir del formato Ymd
 	$fecha = Carbon::createFromFormat('Ymd', $fecha_afip);

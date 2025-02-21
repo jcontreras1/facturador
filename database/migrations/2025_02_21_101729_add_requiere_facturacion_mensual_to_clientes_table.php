@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('items', function (Blueprint $table) {
-            $table->id();
-            $table->string('codigo')->nullable();
-            $table->text('descripcion');
-            $table->double('precio_unitario');
-            $table->timestamps();
+        Schema::table('clientes', function (Blueprint $table) {
+            $table->boolean('requiere_facturacion_mensual')->default(false);
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('items');
+        Schema::table('clientes', function (Blueprint $table) {
+            $table->dropColumn('requiere_facturacion_mensual');
+        });
     }
 };

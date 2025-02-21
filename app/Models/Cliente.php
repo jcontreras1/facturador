@@ -20,4 +20,8 @@ class Cliente extends Model
     {
         return $this->hasMany(Comprobante::class, 'cliente_id');
     }
+
+    public function servicios(){
+        return $this->hasMany(ServicioCliente::class, 'cliente_id');
+    }
 }
