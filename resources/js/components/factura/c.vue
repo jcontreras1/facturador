@@ -259,17 +259,37 @@ const eliminarLinea = (index) => {
 
 onMounted(() => {
   if(props.cliente){
-    if(props.cliente.cuit?.length == 11){
-      //resp inscripto
-      form.tipoDocumentoId = '80';
-      form.condicionIva = 1;
-    } else if(props.cliente.cuit?.length == 0){
-      form.tipoDocumentoId = '99';
-      form.condicionIva = 7;
+    //condicion iva receptor
+    if(props.cliente.condicion_iva_receptor_id){
+      form.condicionIva = props.cliente.condicion_iva_receptor_id;
     }else{
-      form.tipoDocumentoId = '96';
-      form.condicionIva = 6;
+      if(props.cliente.cuit?.length == 11){
+        //resp inscripto
+        form.condicionIva = 1;
+      } else if(props.cliente.cuit?.length == 0){
+        //No categorizado
+        form.condicionIva = 7;
+      }else{
+        //Cons Final
+        form.condicionIva = 6;
+      }
     }
+
+    if(props.cliente.tipo_documento_afip){
+      form.tipoDocumentoId = props.cliente.tipo_documento_afip;
+    }else{
+      if(props.cliente.cuit?.length == 11){
+        //CUIT
+        form.tipoDocumentoId = '80';
+      } else if(props.cliente.cuit?.length == 0){
+        //CONS. FINAL
+        form.tipoDocumentoId = '99';
+      }else{
+        //DNI
+        form.tipoDocumentoId = '96';
+      }
+    }
+    
     form.documento = props.cliente.cuit;
     form.razonSocial = props.cliente.nombre;
     form.domicilio = props.cliente.direccion;

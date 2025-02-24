@@ -3,9 +3,14 @@
     @include('clientes.partials.modalAgregarServicio')
     <div class="container">
         <div class="d-flex justify-content-between">
-            <h3 class="text-lg font-semibold mb-6">Panel del cliente <strong>{{ strtoupper($cliente->nombre) }}</strong></h3>
+            <h3 class="mb-3">
+                Panel del cliente <strong>{{ strtoupper($cliente->nombre) }}</strong>
+                <br>
+                <small class="text-muted fs-5"><em>{{$cliente->tipo_documento}} {{ $cliente->cuit }} - {{$cliente->condicionIva?->descripcion}}</em></small>
+            </h3>
             <div>
                 <a href="{{route('cliente.comprobante.create.c', $cliente)}}" class="btn btn-success"><i class="fas fa-file-invoice"></i> Nueva Factura C</a>
+                <a href="{{route('clientes.edit', $cliente)}}" class="btn btn-warning"><i class="fas fa-edit"></i> Editar</a>
                 <a href="{{route('clientes.index')}}" class="btn btn-primary"><i class="fas fa-chevron-left"></i></a>
             </div>
         </div>
@@ -46,7 +51,7 @@
                                 <th>IVA ID</th>
                                 <th>Importe Neto</th>
                                 @endif
-                                <th>Importe Total</th>
+                                <th>Importe Unitario</th>
                                 <th>Opciones</th>
                             </tr>
                         </thead>

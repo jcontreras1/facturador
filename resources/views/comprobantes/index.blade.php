@@ -2,7 +2,7 @@
     <!-- Modal -->
     @include('comprobantes.partials.enviarFacturaMail')
        <div class="container">
-        <x-title title="Comprobatntes">
+        <x-title title="Comprobantes">
             <a href="{{ route('lote.create.c') }}" class="btn btn-success">
                 <i class="fas fa-user-secret"></i> Facturar C por Monto
             </a>

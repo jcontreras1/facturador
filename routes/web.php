@@ -26,6 +26,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/clientes/{cliente}/facturar', [ClienteController::class, 'dashboard'])->name('clientes.facturar');
     Route::post('/clientes/{cliente}/toggleRequiereFacturacion', [ClienteController::class, 'toggleRequiereFacturacion'])->name('cliente.toggleRequiereFacturacion');
     Route::resource('clientes/{cliente}/servicioCliente', ServicioClienteController::class)->only(['store', 'update', 'destroy']);
+    Route::get('/cliente/resumen', [ClienteController::class, 'resumen'])->name('clientes.resumen');
+    Route::post('/cliente/facturacionMensual', [ClienteController::class, 'facturacionMensual'])->name('clientes.facturacion');
+    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -1,9 +1,10 @@
 <x-app-layout>
     
     <div class="container">
-        <x-title title="Clientes" urlBack="{{route('clientes.index')}}" />
-        <form action="{{route('clientes.store')}}" method="POST">
+        <x-title title="Clientes" urlBack="{{route('clientes.dashboard', $cliente)}}" />
+        <form action="{{route('clientes.update', $cliente)}}" method="POST">
             @csrf
+            @method('PUT')
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title
@@ -14,7 +15,7 @@
                         <div class="col-12 col-md-4">
                             <label class="text">CUIT/CUIL/DNI</label>
                             <div class="input-group">
-                                <input name="cuit" id="nuevo_cliente_cuit" class="form-control" type="text">
+                                <input name="cuit" value="{{ $cliente->cuit }}" id="nuevo_cliente_cuit" class="form-control" type="text">
                                 <button title="Buscar en padron de afip" class="btn btn-secondary" type="button" id="searchCliente">
                                     <i class="fas fa-search"></i>
                                 </button>
@@ -24,7 +25,7 @@
                             <label class="text">Condición de IVA</label>
                             <select name="condicion_iva_receptor_id" class="form-select">
                                 @foreach (\App\Models\Arca\IvaReceptor::all() as $condicion)
-                                <option value="{{$condicion->id}}" @if($condicion->id == 7) selected @endif >{{$condicion->descripcion}}</option>
+                                <option value="{{$condicion->id}}" @if($condicion->id == $cliente->condicion_iva_receptor_id) selected @endif >{{$condicion->descripcion}}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -32,7 +33,7 @@
                             <label class="text">Tipo Documento</label>
                             <select name="tipo_documento_afip" class="form-select">
                                 @foreach (\App\Models\Arca\TipoDocumento::getOptions() as $tipo)
-                                <option value="{{$tipo['value']}}" @if($tipo['value'] == 80) selected @endif >{{$tipo['descripcion']}}</option>
+                                <option value="{{$tipo['value']}}" @if($tipo['value'] == $cliente->tipo_documento_afip) selected @endif >{{$tipo['descripcion']}}</option>
                                 @endforeach
                             </select>
                     </div>
@@ -48,26 +49,26 @@
             <div class="row">
                 <div class="col-12">
                     <label class="text">Razón Social <span class="text-danger">*</span></label>
-                    <input name="nombre" id="nuevo_cliente_razon_social" class="form-control" type="text" required>
+                    <input name="nombre" value="{{$cliente->nombre}}" id="nuevo_cliente_razon_social" class="form-control" type="text" required>
                 </div>
             </div>
             
             <div class="row">
                 <div class="col-12">
                     <label class="text">Domicilio</label>
-                    <input name="direccion" id="nuevo_cliente_domicilio" class="form-control" type="text">
+                    <input name="direccion" value="{{$cliente->direccion}}" id="nuevo_cliente_domicilio" class="form-control" type="text">
                 </div>
             </div>
             <div class="row">
                 <div class="col-12">
                     <label class="text">Teléfono</label>
-                    <input name="telefono" class="form-control" type="text">
+                    <input name="telefono" value="{{$cliente->telefono}}" class="form-control" type="text">
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-12">
                     <label class="text">Email</label>
-                    <input name="email" class="form-control" type="email">
+                    <input name="email" value="{{$cliente->email}}" class="form-control" type="email">
                 </div>
             </div>
             

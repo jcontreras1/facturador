@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Arca\Iva;
 use Illuminate\Database\Eloquent\Model;
 
 class ServicioCliente extends Model
@@ -31,5 +32,10 @@ class ServicioCliente extends Model
     public function servicio()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function iva()
+    {
+        return $this->belongsTo(Iva::class);
     }
 }
