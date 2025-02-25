@@ -35,7 +35,7 @@
                                 <option value="{{$tipo['value']}}" @if($tipo['value'] == 80) selected @endif >{{$tipo['descripcion']}}</option>
                                 @endforeach
                             </select>
-                    </div>
+                        </div>
                     </div>
                     <!-- Spinner element -->
                     <div id="spinner" style="display: none;">

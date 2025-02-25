@@ -13,6 +13,15 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-12 col-md-4">
+                            <label class="text">Tipo Documento</label>
+                            <select name="tipo_documento_afip" class="form-select">
+                                <option value="">Seleccione una opción...</option>
+                                @foreach (\App\Models\Arca\TipoDocumento::getOptions() as $tipo)
+                                <option value="{{$tipo['value']}}" @if($tipo['value'] == $cliente->tipo_documento_afip) selected @endif >{{$tipo['descripcion']}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
                             <label class="text">CUIT/CUIL/DNI</label>
                             <div class="input-group">
                                 <input name="cuit" value="{{ $cliente->cuit }}" id="nuevo_cliente_cuit" class="form-control" type="text">
@@ -24,19 +33,13 @@
                         <div class="col-12 col-md-4">
                             <label class="text">Condición de IVA</label>
                             <select name="condicion_iva_receptor_id" class="form-select">
+                                <option value="">Seleccione una opción...</option>
                                 @foreach (\App\Models\Arca\IvaReceptor::all() as $condicion)
                                 <option value="{{$condicion->id}}" @if($condicion->id == $cliente->condicion_iva_receptor_id) selected @endif >{{$condicion->descripcion}}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-12 col-md-4">
-                            <label class="text">Tipo Documento</label>
-                            <select name="tipo_documento_afip" class="form-select">
-                                @foreach (\App\Models\Arca\TipoDocumento::getOptions() as $tipo)
-                                <option value="{{$tipo['value']}}" @if($tipo['value'] == $cliente->tipo_documento_afip) selected @endif >{{$tipo['descripcion']}}</option>
-                                @endforeach
-                            </select>
-                    </div>
+                        
                     </div>
                     <!-- Spinner element -->
                     <div id="spinner" style="display: none;">

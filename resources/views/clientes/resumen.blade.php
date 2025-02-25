@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="container">
-        <x-title title="Clientes" urlBack="{{route('home')}}" >
+        <x-title title="Clientes" urlBack="{{route('clientes.index')}}" >
             @php
                 $allClientsValid = $clientes->every(function($cliente) {
                     return $cliente->tipo_documento && $cliente->condicion_iva_receptor_id;
@@ -122,7 +122,9 @@
         })
         .then((result) => {
             if (result.isConfirmed) {
-                Swal.fire('Facturación y notificación', 'Proceso finalizado', 'success');
+                Swal.fire('Facturación y notificación', 'Proceso finalizado', 'success').then(() => {
+                    location.href = '{{ route("comprobantes.index") }}';
+                });
             }
         });
     }

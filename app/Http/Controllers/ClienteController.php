@@ -87,6 +87,8 @@ class ClienteController extends Controller
     }
     
     public function facturacionMensual(Request $request){
+        sleep(2);
+        response(['msg' => ''], 201);
         
         $clientes = Cliente::where('requiere_facturacion_mensual', true)->get();
         $notificar = boolval($request->notificar);
@@ -98,7 +100,8 @@ class ClienteController extends Controller
                     Mail::to($cliente->email)->send(new NuevoComprobante($comprobante));
                 }
             } catch (\Throwable $th) {
-                $msg .= 'Error al generar comprobante. Razon: '.$th->getMessage().'<br>';
+                $msg .= 'Error al generar comprobante
+                . Razon: '.$th->getMessage().'<br>';
             }
         }
         return response(['msg' => $msg], 201);
