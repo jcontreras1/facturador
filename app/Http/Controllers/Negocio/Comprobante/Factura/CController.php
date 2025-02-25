@@ -6,6 +6,7 @@ use App\Http\Controllers\AfipWS\Afip;
 use App\Http\Controllers\Controller;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\DetalleComprobante;
+use App\Models\Arca\IvaReceptor;
 use App\Models\Arca\TipoComprobante;
 use App\Models\Cliente;
 use Exception;
@@ -21,7 +22,7 @@ class CController extends Controller
         DB::beginTransaction();
         try {
             $puntoVenta = variable_global('PUNTO_VENTA');
-
+            
             $comprobante = Comprobante::create([
                 'tipo_documento_id' => $request->tipoDocumentoId,
                 'cuit_dni' => $request->documento,
@@ -53,12 +54,12 @@ class CController extends Controller
                     'importe_subtotal' => $linea['subtotal'],
                 ]);
             }
-
+            
             //ARCA
             
             $numeroComprobante = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, $tipoComprobante->codigo_afip);
             $numeroComprobante++;
-
+            
             $data = [
                 'CantReg' => 1,
                 'PtoVta' => intval($puntoVenta),
@@ -79,7 +80,7 @@ class CController extends Controller
                 'MonId' => 'PES',
                 'MonCotiz' => 1,
             ];
-
+            
             if ($request->concepto == 1) {
                 $data['FchServDesde'] = null;
                 $data['FchServHasta'] = null;
@@ -89,26 +90,26 @@ class CController extends Controller
                 $data['FchServHasta'] = intval(date('Ymd', strtotime($request->fechaFinServicios)));
                 $data['FchVtoPago'] = intval(date('Ymd', strtotime($request->fechaVencimientoPago)));
             }
-
+            
             $afipComp = $afip->FacturaElectronica->CreateVoucher($data);
-
+            
             $comprobante->update([
                 'cae' => $afipComp['CAE'],
                 'fecha_vencimiento_cae' => $afipComp['CAEFchVto'],
                 'nro_comprobante' => $numeroComprobante,
             ]);
-
+            
             // return response('Parece que sim che', 500);
             DB::commit();
-
+            
         } catch (Exception $th) {
             DB::rollBack();
             return response()->json(['message' => 'Error al guardar el comprobante: ' . $th->getMessage()], 500);
         }
-
+        
         return response()->json(['message' => 'Comprobante guardado correctamente'], 201);
     }
-
+    
     public static function facturacionMensual(Cliente $cliente): Comprobante | Exception{
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first(); // Obtener tipo de comprobante 'C'
         $afip = new Afip();
@@ -155,11 +156,11 @@ class CController extends Controller
                     'importe_subtotal' => $servicio->importe_total,
                 ]);
             }
-    
+            
             // Obtener el número de comprobante
             $numeroComprobante = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, $tipoComprobante->codigo_afip);
             $numeroComprobante++;
-    
+            
             // Preparar datos para la AFIP
             $data = [
                 'CantReg' => 1,
@@ -184,42 +185,112 @@ class CController extends Controller
                 'MonId' => 'PES',
                 'MonCotiz' => 1,
             ];
-    
+            
             // Crear el comprobante en la AFIP
             $afipComp = $afip->FacturaElectronica->CreateVoucher($data);
-    
+            
             // Actualizar el comprobante con el CAE y la fecha de vencimiento
             $comprobante->update([
                 'cae' => $afipComp['CAE'],
                 'fecha_vencimiento_cae' => $afipComp['CAEFchVto'],
                 'nro_comprobante' => $numeroComprobante,
             ]);
-    
+            
             DB::commit();
-    
+            
         } catch (Exception $th) {
             DB::rollBack();
             
             throw new Exception($th->getMessage());
         }
-    
+        
         return $comprobante;
     }
-    
-    // Función para calcular el importe neto
-    private function calcularImporteNeto($servicios)
-    {
-        return $servicios->sum('importe_neto');
-    }
-    
-    // Función para calcular el importe total
-    private function calcularImporteTotal($servicios)
-    {
-        return $servicios->sum('importe_total');
-    }
-    
-
     public function storeLoteFacturasC(Request $request){
-        
+        $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
+        $afip = new Afip();
+        DB::beginTransaction();
+        try {
+            $puntoVenta = variable_global('PUNTO_VENTA');
+            $importeNeto = round($request->importe_total / intval($request->cant_comprobantes),2);
+            $numeroComprobante = $afip->FacturaElectronica->GetLastVoucher($puntoVenta, $tipoComprobante->codigo_afip);
+            for($i = 0; $i < intval($request->cant_comprobantes); $i++){
+                
+                $numeroComprobante++;
+
+                $comprobante = Comprobante::create([
+                    'tipo_comprobante_id' => $tipoComprobante->id,
+                    'punto_venta' => $puntoVenta,
+                    'created_by' => auth()->user()->id,
+                    'condicion_iva_receptor_id' => IvaReceptor::where('codigo_afip', 5)->first()->id,
+                    'fecha_emision' => today()->format('Y-m-d'),
+                    'concepto' => $request->concepto,
+                    'fecha_servicio_desde' => $request->concepto == '1' ? null : $request->fecha_servicio_desde,
+                    'fecha_servicio_hasta' => $request->concepto == '1' ? null : $request->fecha_servicio_hasta,
+                    'fecha_vencimiento_pago' => $request->concepto == '1' ? null : $request->fecha_vencimiento_pago,
+                    'importe_neto' => $importeNeto,
+                    'importe_total' => $importeNeto,
+                ]);
+
+                
+                DetalleComprobante::create([
+                    'comprobante_id' => $comprobante->id,
+                    'descripcion' => $request->descripcion,
+                    'cantidad' => 1,
+                    'unidad_medida' => 'unidad',
+                    'importe_unitario' => $importeNeto,
+                    'importe_subtotal' => $importeNeto,
+                ]);
+                
+                $data = [
+                    'CantReg' => 1,
+                    'PtoVta' => intval($puntoVenta),
+                    'CbteTipo' => intval($tipoComprobante->codigo_afip),
+                    'Concepto' => intval($request->concepto),
+                    'DocTipo' => 99,
+                    'DocNro' => 0,
+                    'CondicionIVAReceptorId' => 5, // Consumidor final
+                    'CbteDesde' => $numeroComprobante,
+                    'CbteHasta' => $numeroComprobante,
+                    'CbteFch' => intval(str_replace('-', '', today()->format('Y-m-d'))),
+                    'ImpTotal' => $importeNeto,
+                    'ImpTotConc' => 0,
+                    'ImpNeto' => $importeNeto,
+                    'ImpOpEx' => 0,
+                    'ImpIVA' => 0,
+                    'ImpTrib' => 0,
+                    'MonId' => 'PES',
+                    'MonCotiz' => 1,
+                ];
+                
+                if ($request->concepto == 1) {
+                    $data['FchServDesde'] = null;
+                    $data['FchServHasta'] = null;
+                    $data['FchVtoPago'] = null;
+                } else {
+                    $data['FchServDesde'] = intval(date('Ymd', strtotime($request->fecha_servicio_desde)));
+                    $data['FchServHasta'] = intval(date('Ymd', strtotime($request->fecha_servicio_hasta)));
+                    $data['FchVtoPago'] = intval(date('Ymd', strtotime($request->fecha_vencimiento_pago)));
+                }
+
+                // return $data;
+
+                $afipComp = $afip->FacturaElectronica->CreateVoucher($data);
+                
+                $comprobante->update([
+                    'cae' => $afipComp['CAE'],
+                    'fecha_vencimiento_cae' => $afipComp['CAEFchVto'],
+                    'nro_comprobante' => $numeroComprobante,
+                ]);   
+            }
+            
+            DB::commit();
+            toast('Facturas guardadas correctamente', 'success')->autoClose(1500);
+            return redirect()->route('comprobantes.index');
+        } catch (Exception $th) {
+            DB::rollBack();
+            alert('Error', 'Error al guardar las facturas: ' . $th->getMessage(), 'error')->autoClose(0);
+            return redirect()->back()->withInput();
+        }
     }
 }
