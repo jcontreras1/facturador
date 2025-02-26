@@ -42,6 +42,7 @@
                     <td>${{ pesosargentinos($comprobante->importe_total) }}</td>
                     <td class="d-flex gap-1">
                         @if($comprobante->cae)
+                        <a href="{{route('comprobante.descargar.termica', $comprobante)}}" class="btn btn-primary btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-primary btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <button 
                         onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}', '{{$comprobante->cliente?->email}}')" 

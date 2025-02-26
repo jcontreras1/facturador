@@ -15,6 +15,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/comprobantes', [ComprobanteController::class, 'index'])->name('comprobantes.index');
     Route::get('/comprobante/{comprobante}/descargar/pdf', [ComprobanteController::class, 'descargarPdf'])->name('comprobante.descargar.pdf');
+    Route::get('/comprobante/{comprobante}/descargar/termica', [ComprobanteController::class, 'descargarTermica'])->name('comprobante.descargar.termica');
     Route::post('comprobante/{comprobante}/enviar/mail', [ComprobanteController::class, 'enviarMail'])->name('comprobante.enviar.mail');
     Route::post('comprobante/{comprobante}/anular', [NCCController::class, 'anular'])->name('comprobante.anular');
     Route::get('/comprobante/c', [ComprobanteController::class, 'createFacturaC'])->name('comprobante.create.c');

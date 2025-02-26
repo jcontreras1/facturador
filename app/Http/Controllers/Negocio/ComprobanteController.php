@@ -49,6 +49,13 @@ public function descargarPdf(Comprobante $comprobante){
         strtoupper(variable_global('RAZON_SOCIAL')) . ' - ' . titulo_comprobante($comprobante) . '.pdf');
     }
     
+public function descargarTermica(Comprobante $comprobante){
+    return view('comprobantes.termica', ['comprobante' => $comprobante]);
+    $pdf = PDF::loadView('comprobantes.termica', ['comprobante' => $comprobante]);
+    return $pdf->download(
+        strtoupper(variable_global('RAZON_SOCIAL')) . ' - ' . titulo_comprobante($comprobante) . '.pdf');
+    }
+    
     
     public function enviarMail(Comprobante $comprobante, Request $request){
         Mail::to($request->email)->send(new NuevoComprobante($comprobante));
