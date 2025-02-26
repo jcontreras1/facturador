@@ -53,102 +53,112 @@
                 </td>
                 <td></td>
                 <td class="right-column" style="padding-left: 10px;">
-                    <p><strong>Punto de Venta: {{ str_pad(variable_global('PUNTO_VENTA'), 5, '0', STR_PAD_LEFT) }} 
+                    <p>
+                        <strong>Punto de Venta: {{ str_pad(variable_global('PUNTO_VENTA'), 5, '0', STR_PAD_LEFT) }} 
                         &nbsp;&nbsp;&nbsp;
-                        Comp. Nro: {{ str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) }}</strong></p>
-                        <p><strong>Fecha de emisión:</strong> {{ $comprobante->created_at->format('d/m/Y') }}</p>
-                        <p>
-                            
-                            <strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}
-                            <br>
-                            @if(variable_global('FECHA_INICIO_ACTIVIDADES') !== '')
-                            <strong>Fecha de inicio de Actividades:</strong> {{ date('d/m/Y', strtotime(variable_global('FECHA_INICIO_ACTIVIDADES'))) }}
-                            @endif
-                        </p>
-                    </td>
-                </tr>
-            </table>
-            
-            <div class="bordered-container">
-                <strong>Condición IVA: </strong> {{$comprobante->condicionIvaReceptor?->descripcion}}
-                <br>
-                <strong>Apellido y Nombre o Razón Social: </strong> {{$comprobante->razon_social}}
-                <br>
-                <strong>CUIT: </strong> {{$comprobante->cuit_dni}}
-                <br>
-                <strong>Domicilio: </strong> {{$comprobante->domicilio}}<br>
-            </div>
-            
-            <!-- Tabla de productos -->
-            <table class="item-table">
-                <thead>
-                    <tr>
-                        <th>Descripción</th>
-                        <th>Cantidad</th>
-                        <th>U. Medida</th>
-                        <th>Precio Unit.</th>
-                        <th>% Bonif.</th>
-                        <th>Imp. Bonif.</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($comprobante->detalle as $item)  
-                    <tr>
-                        <td>
-                            @if($item->codigo)
-                            [{{$item->codigo}}]
-                            @endif
-                            {{$item->descripcion}}
-                        </td>
-                        <td>{{$item->cantidad}}</td>
-                        <td>{{$item->unidad_medida}}</td>
-                        <td>{{pesosargentinos($item->importe_unitario)}}</td>
-                        <td>{{$item->porcentaje_descuento}}</td>
-                        <td>{{pesosargentinos($item->importe_descuento)}}</td>
-                        <td>{{pesosargentinos($item->importe_subtotal)}}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            
-            <!-- Pie de la factura -->
-            <!-- Total de la factura en un cuadro -->
-            <div class="ultra-footer">
-                <div class="total-container">
-                        <span class="total-label">Subtotal:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_neto)}}</span>
+                        Comp. Nro: {{ str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) }}</strong>
                         <br>
-                        <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
+                        <strong>Fecha de emisión:</strong> {{ $comprobante->created_at->format('d/m/Y') }}
                         <br>
-                        <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
+                        <strong>Ingresos Brutos:</strong> {{ variable_global('CUIT_EMPRESA') }}
+                        <br>
+                        @if(variable_global('FECHA_INICIO_ACTIVIDADES') !== '')
+                        <strong>Fecha de inicio de Actividades:</strong> {{ date('d/m/Y', strtotime(variable_global('FECHA_INICIO_ACTIVIDADES'))) }}
+                        @endif
+                    </p>
+                </td>
+            </tr>
+        </table>
+                {{-- productos y servicios --}}
+                @if($comprobante->concepto !== 1) 
+                <div class="bordered-container">
+                    <strong>Período Facturado Desde: </strong> {{ $comprobante->fecha_servicio_desde ? date('d/m/Y', strtotime($comprobante->fecha_servicio_desde)) : '' }}
+                    &nbsp;&nbsp;&nbsp;
+                    <strong>Hasta: </strong> {{ $comprobante->fecha_servicio_hasta ? date('d/m/Y', strtotime($comprobante->fecha_servicio_hasta)) : '' }}
+                    &nbsp;&nbsp;&nbsp;
+                    <strong>Fecha de Vto. para el pago: </strong> {{ $comprobante->fecha_vencimiento_pago ? date('d/m/Y', strtotime($comprobante->fecha_vencimiento_pago)) : '' }}
                 </div>
-                
-                <div class="footer">
-                    <table style="width: 100%;">
-                        <tr>
-                            <td style="width: 25%; text-align: left;">
-                                <img src="{!! imgBase64QRFactura($comprobante) !!}" alt="QR" />
-                            </td>
-                            <td style="width: 40%; text-align: left;">
-                                <img width="80" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
-                                <br>
-                                Comprobante autorizado
-                            </td>
-                            <td style="width: 35%; text-align: right;">
-                                <strong>CAE Nº: </strong> {{$comprobante->cae}}<br>
-                                
-                                <strong>Fecha de Vto. de CAE: </strong> 
-                                @if($comprobante->fecha_vencimiento_cae)
-                                {{Carbon\Carbon::parse($comprobante->fecha_vencimiento_cae)->format('d/m/Y')}}<br>
-                                @endif
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                
-            </div>
+                @endif
+        <div class="bordered-container">
+            <strong>Condición IVA: </strong> {{$comprobante->condicionIvaReceptor?->descripcion}}
+            <br>
+            <strong>Apellido y Nombre o Razón Social: </strong> {{$comprobante->razon_social}}
+            <br>
+            <strong>CUIT: </strong> {{$comprobante->cuit_dni}}
+            <br>
+            <strong>Domicilio: </strong> {{$comprobante->domicilio}}<br>
         </div>
+
         
-    </body>
-    </html>
+        <!-- Tabla de productos -->
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>U. Medida</th>
+                    <th>Precio Unit.</th>
+                    <th>% Bonif.</th>
+                    <th>Imp. Bonif.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($comprobante->detalle as $item)  
+                <tr>
+                    <td>
+                        @if($item->codigo)
+                        [{{$item->codigo}}]
+                        @endif
+                        {{$item->descripcion}}
+                    </td>
+                    <td>{{$item->cantidad}}</td>
+                    <td>{{$item->unidad_medida}}</td>
+                    <td>{{pesosargentinos($item->importe_unitario)}}</td>
+                    <td>{{$item->porcentaje_descuento}}</td>
+                    <td>{{pesosargentinos($item->importe_descuento)}}</td>
+                    <td>{{pesosargentinos($item->importe_subtotal)}}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        
+        <!-- Pie de la factura -->
+        <!-- Total de la factura en un cuadro -->
+        <div class="ultra-footer">
+            <div class="total-container">
+                <span class="total-label">Subtotal:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_neto)}}</span>
+                <br>
+                <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
+                <br>
+                <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
+            </div>
+            
+            <div class="footer">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 25%; text-align: left;">
+                            <img src="{!! imgBase64QRFactura($comprobante) !!}" alt="QR" />
+                        </td>
+                        <td style="width: 40%; text-align: left;">
+                            <img width="80" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/arca_dark.png'))) }}" />
+                            <br>
+                            Comprobante autorizado
+                        </td>
+                        <td style="width: 35%; text-align: right;">
+                            <strong>CAE Nº: </strong> {{$comprobante->cae}}<br>
+                            
+                            <strong>Fecha de Vto. de CAE: </strong> 
+                            @if($comprobante->fecha_vencimiento_cae)
+                            {{Carbon\Carbon::parse($comprobante->fecha_vencimiento_cae)->format('d/m/Y')}}<br>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+        </div>
+    </div>
     
+</body>
+</html>
