@@ -87,23 +87,33 @@ class ClienteController extends Controller
     }
     
     public function facturacionMensual(Request $request){
-        sleep(2);
-        response(['msg' => ''], 201);
         
-        $clientes = Cliente::where('requiere_facturacion_mensual', true)->get();
+
+        $clientesData = $request->only(['cliente_id', 'fechaDesde', 'fechaHasta', 'fechaVencimiento']);
         $notificar = boolval($request->notificar);
         $msg = '';
-        foreach($clientes as $cliente){
+
+        foreach ($clientesData['cliente_id'] as $index => $clienteId) {
+            $cliente = Cliente::find($clienteId);
+            if ($cliente) {
             try {
-                $comprobante = CController::facturacionMensual($cliente);
-                if($notificar){
-                    Mail::to($cliente->email)->send(new NuevoComprobante($comprobante));
+                $comprobante = CController::facturacionMensual(
+                $cliente,
+                $clientesData['fechaDesde'][$index] ? intval(str_replace('-', '', $clientesData['fechaDesde'][$index])) : intval(date('Ymd')),
+                $clientesData['fechaDesde'][$index] ? intval(str_replace('-', '', $clientesData['fechaHasta'][$index])) : intval(date('Ymd')),
+                $clientesData['fechaVencimiento'][$index] ? intval(str_replace('-', '', $clientesData['fechaVencimiento'][$index])) : intval(date('Ymd'))
+                );
+                if ($notificar) {
+                Mail::to($cliente->email)->send(new NuevoComprobante($comprobante));
                 }
             } catch (\Throwable $th) {
-                $msg .= 'Error al generar comprobante
-                . Razon: '.$th->getMessage().'<br>';
+                $msg .= 'Error al generar comprobante para cliente ID ' . $clienteId . '. Razon: ' . $th->getMessage() . '<br>';
+            }
+            } else {
+            $msg .= 'Cliente no encontrado para ID ' . $clienteId . '<br>';
             }
         }
+
         return response(['msg' => $msg], 201);
     }
     

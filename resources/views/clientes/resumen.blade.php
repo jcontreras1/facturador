@@ -2,9 +2,9 @@
     <div class="container">
         <x-title title="Clientes" urlBack="{{route('clientes.index')}}" >
             @php
-                $allClientsValid = $clientes->every(function($cliente) {
-                    return $cliente->tipo_documento && $cliente->condicion_iva_receptor_id;
-                });
+            $allClientsValid = $clientes->every(function($cliente) {
+                return $cliente->tipo_documento && $cliente->condicion_iva_receptor_id;
+            });
             @endphp
             <button id="btnFacturarNotificar" class="btn btn-success" {{ $allClientsValid ? '' : 'disabled' }}>Facturar y notificar</button>
             <button id="btnFacturar" class="btn btn-success" {{ $allClientsValid ? '' : 'disabled' }}>Facturar</button>
@@ -25,64 +25,84 @@
         @if(!count($clientes))
         <em>No hay clientes con facturación mensual definida.</em>
         @endif
-
+        
         <div class="row">
-            @foreach($clientes as $cliente)
-            @if(count($cliente->servicios))
-            <div class="col-12 mb-2" >
-                <div class="card p-4">
-                    <div class="fs-5 mb-2">
-                        <i class="fas fa-user"></i> {{ $cliente->nombre }} 
-                        <br>
-                        Notificar a: <em><a href="mailto:{{ $cliente->email }}">{{ $cliente->email }}</a></em>
-                        <br>
-                        @if(!$cliente->tipo_documento)
-                        <span class="badge bg-danger">Falta el tipo de documento</span>
-                        @endif
-                        @if(!$cliente->condicion_iva_receptor_id)
-                        <span class="badge bg-danger">Falta la condicion frente al IVA</span>
-                        @endif
+            <form id="formFacturacionMensual" action="{{ route('clientes.facturacion') }}" method="POST">
+                @foreach($clientes as $cliente)
+                @if(count($cliente->servicios))
+                <div class="col-12 mb-2" >
+                    <div class="card p-4">
+                        <div class="fs-5 mb-2">
+                            <i class="fas fa-user"></i> {{ $cliente->nombre }} 
+                            <br>
+                            Notificar a: <em><a href="mailto:{{ $cliente->email }}">{{ $cliente->email }}</a></em>
+                            <br>
+                            @if(!$cliente->tipo_documento)
+                            <span class="badge bg-danger">Falta el tipo de documento</span>
+                            @endif
+                            @if(!$cliente->condicion_iva_receptor_id)
+                            <span class="badge bg-danger">Falta la condicion frente al IVA</span>
+                            @endif
+                        </div>
+                        <table class="table table-striped mb-3">
+                            <thead>
+                                <tr>
+                                    <th>Cant.</th>
+                                    <th>Descripción</th>
+                                    <th>Importe Unitario</th>
+                                    <th>Subotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($cliente->servicios as $servicio)
+                                <tr>
+                                    <td>{{ $servicio->cantidad }}</td>
+                                    <td>{{ $servicio->descripcion }}</td>
+                                    <td>${{ pesosargentinos($servicio->importe_total) }}</td>
+                                    <td>${{ pesosargentinos( $servicio->importe_total * $servicio->cantidad ) }}</td>
+                                </tr>
+                                @endforeach
+                                <tr class="fs-5">
+                                    <td colspan="3" class="text-end"><strong>Total</strong></td>
+                                    <td><strong>${{ pesosargentinos($cliente->servicios->sum(function($servicio) {
+                                        return $servicio->importe_total * $servicio->cantidad;
+                                    })) }}</strong></td>
+                                </tbody>
+                            </table>
+                            
+                            <div class="row mb-3 mt-2">
+                                <input type="hidden" name="cliente_id[]" value="{{ $cliente->id }}">
+                                <div class="col-12 col-md-4 mb-3">
+                                    <label>Fecha servicio Desde</label>
+                                    <input type="date" id="fechaDesdeServicio{{$cliente->id}}" name="fechaDesde[]" class="form-control" value="{{date('Y-m-d')}}">
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label>Fecha servicio Hasta</label>
+                                    <input type="date" id="fechaHastaServicio{{$cliente->id}}" name="fechaHasta[]" class="form-control" value="{{date('Y-m-d')}}">
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label>Fecha vencimiento Pago</label>
+                                    <input type="date" id="fechaVencimientoPago{{$cliente->id}}" name="fechaVencimiento[]" class="form-control" value="{{date('Y-m-d')}}">
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" onclick="setMesAnterior('{{$cliente->id}}')" class="btn btn-info btn-sm mr-2"><i class="far fa-lightbulb"></i> Todo el mes pasado</button>
+                                    <button type="button" onclick="setMes('{{$cliente->id}}')" class="btn btn-info btn-sm mr-2"><i class="far fa-lightbulb"></i> Todo este mes</button>
+                                    <button type="button" onclick="setHoy('{{$cliente->id}}')" class="btn btn-info btn-sm mr-2"><i class="far fa-lightbulb"></i> Hoy</button>
+                                </div>
+                            </div>
+                            
+                        </div>
                     </div>
-                    <table class="table table-striped mb-3">
-                        <thead>
-                            <tr>
-                                <th>Cant.</th>
-                                <th>Descripción</th>
-                                <th>Importe Unitario</th>
-                                <th>Subotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($cliente->servicios as $servicio)
-                            <tr>
-                                <td>{{ $servicio->cantidad }}</td>
-                                <td>{{ $servicio->descripcion }}</td>
-                                <td>${{ pesosargentinos($servicio->importe_total) }}</td>
-                                <td>${{ pesosargentinos( $servicio->importe_total * $servicio->cantidad ) }}</td>
-                            </tr>
-                            @endforeach
-                            <tr class="fs-5">
-                                <td colspan="3" class="text-end"><strong>Total</strong></td>
-                                <td><strong>${{ pesosargentinos($cliente->servicios->sum(function($servicio) {
-                                    return $servicio->importe_total * $servicio->cantidad;
-                                })) }}</strong></td>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                @endif
-                @endforeach
+                    @endif
+                    @endforeach
+                    @csrf
+                </form>
             </div>
         </div>
-        
-        
-        
     </div>
 </div>
 
-<form id="formFacturacionMensual" action="{{ route('clientes.facturacion') }}" method="POST">
-    @csrf
-</form>
+
 
 @push('scripts')
 <script>
@@ -96,6 +116,31 @@
             facturar(true);
         });
     });
+    
+    function setMesAnterior(clienteId) {
+        let fechaDesde = new Date('{{ today()->subMonth()->startOfMonth()->format('Y-m-d') }}');
+        let fechaHasta = new Date('{{ today()->subMonth()->endOfMonth()->format('Y-m-d') }}');
+        let fechaVencimientoPago = new Date('{{ today()->startOfMonth()->addDays(9)->format('Y-m-d') }}');
+        document.getElementById('fechaDesdeServicio'+clienteId).value = fechaDesde.toISOString().split('T')[0];
+        document.getElementById('fechaHastaServicio'+clienteId).value = fechaHasta.toISOString().split('T')[0];
+        document.getElementById('fechaVencimientoPago'+clienteId).value = fechaVencimientoPago.toISOString().split('T')[0];
+    }
+    
+    function setMes(clienteId) {
+        let fechaDesde = new Date('{{ today()->startOfMonth()->format('Y-m-d') }}');
+        let fechaHasta = new Date('{{ today()->endOfMonth()->format('Y-m-d') }}');
+        let fechaVencimientoPago = new Date('{{ today()->addMonth()->startOfMonth()->addDays(9)->format('Y-m-d') }}');
+        document.getElementById('fechaDesdeServicio'+clienteId).value = fechaDesde.toISOString().split('T')[0];
+        document.getElementById('fechaHastaServicio'+clienteId).value = fechaHasta.toISOString().split('T')[0];
+        document.getElementById('fechaVencimientoPago'+clienteId).value = fechaVencimientoPago.toISOString().split('T')[0];
+    }
+    
+    function setHoy(clienteId) {
+        let fecha = new Date('{{ today()->format('Y-m-d') }}');
+        document.getElementById('fechaDesdeServicio'+clienteId).value = fecha.toISOString().split('T')[0];
+        document.getElementById('fechaHastaServicio'+clienteId).value = fecha.toISOString().split('T')[0];
+        document.getElementById('fechaVencimientoPago'+clienteId).value = fecha.toISOString().split('T')[0];
+    }
     
     function facturar(notificar){
         let title = notificar ? 'Facturación y notificación' : 'Facturación';
@@ -111,7 +156,9 @@
             preConfirm: async () => {
                 try {
                     const url = `{{ route('clientes.facturacion') }}?notificar=${notificar}`;
-                    const response = await axios.post(url);
+                    const form = document.getElementById('formFacturacionMensual');
+                    const formData = new FormData(form);
+                    const response = await axios.post(url, formData);
                     if (!response.status == 201 || response.data.msg !== "") {
                         return Swal.showValidationMessage(`Algunos clientes no pudieron ser facturados: ${response.data.msg}`);
                     }

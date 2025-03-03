@@ -110,7 +110,14 @@ class CController extends Controller
         return response()->json(['message' => 'Comprobante guardado correctamente'], 201);
     }
     
-    public static function facturacionMensual(Cliente $cliente): Comprobante | Exception{
+    public static function facturacionMensual(
+        Cliente $cliente, 
+        $periodoDesde = null, 
+        $periodoHasta = null, 
+        $periodoVencimiento = null): Comprobante | Exception{
+
+            // throw new Exception('Error en la facturación mensual. Cliente: ' . $cliente->nombre . ', Periodo Desde: ' . $periodoDesde . ', Periodo Hasta: ' . $periodoHasta . ', Periodo Vencimiento: ' . $periodoVencimiento);
+
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first(); // Obtener tipo de comprobante 'C'
         $afip = new Afip();
         DB::beginTransaction();
@@ -136,9 +143,9 @@ class CController extends Controller
                 'importe_total' => $cliente->servicios()->sum('importe_total'),
                 'condicion_iva_receptor_id' => $cliente->condicionIva->id,
                 'fecha_emision' => today()->format('Y-m-d'),
-                'fecha_servicio_desde' => today()->startOfMonth()->format('Y-m-d'),
-                'fecha_servicio_hasta' => today()->endOfMonth()->format('Y-m-d'),
-                'fecha_vencimiento_pago' => today()->addDays(10)->format('Y-m-d'),
+                'fecha_servicio_desde' => intval($periodoDesde) ? intval(date('Ymd', strtotime($periodoDesde))) : intval(today()->startOfMonth()->format('Ymd')),
+                'fecha_servicio_hasta' => intval($periodoHasta) ? intval(date('Ymd', strtotime($periodoHasta))) : intval(today()->endOfMonth()->format('Ymd')),
+                'fecha_vencimiento_pago' => intval($periodoVencimiento) ? intval(date('Ymd', strtotime($periodoVencimiento))) : intval(today()->addDays(10)->format('Ymd')),
                 'concepto' => 2, // 2: servicios
                 'cliente_id' => $cliente->id,
             ]);
