@@ -42,8 +42,12 @@
                     <td>${{ pesosargentinos($comprobante->importe_total) }}</td>
                     <td class="d-flex gap-1">
                         @if($comprobante->cae)
-                        <a href="{{route('comprobante.descargar.termica', $comprobante)}}" class="btn btn-primary btn-sm btnDescargar" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
+                        @if(variable_global('TIPO_IMPRESORA') == 'AMBAS' || variable_global('TIPO_IMPRESORA') == 'TERMICA')
+                        <a href="{{route('comprobante.descargar.termica', $comprobante)}}" class="btn btn-primary btn-sm btnDescargar" title="Imprimir ticket"><i class="fas fa-print"></i></a>
+                        @endif
+                        @if(variable_global('TIPO_IMPRESORA') == 'AMBAS' || variable_global('TIPO_IMPRESORA') == 'A4')
                         <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-primary btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
+                        @endif
                         <button 
                         onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}', '{{$comprobante->cliente?->email}}')" 
                         data-bs-toggle="modal" data-bs-target="#modalEnviarFacturaMail" 

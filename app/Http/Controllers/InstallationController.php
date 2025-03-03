@@ -25,7 +25,7 @@ class InstallationController extends Controller
         $res = openssl_pkey_new($config);
         
         if ($res === false) {
-            toast('Error al generar una nueva clave', 'error');
+            toast('Error al generar una nueva clave: ' . openssl_error_string(), 'error');
             return redirect()->back();
         }
         

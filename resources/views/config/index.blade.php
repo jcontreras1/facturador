@@ -243,6 +243,29 @@
                 </div>
             </div>
             
+            {{-- Usar una impresora termica o convencional --}}
+            <div class="col-12 col-md-3 mb-3">
+                <div class="card info h-100">
+                    <div class="card-body">
+                        <div class="display-3">
+                            <i class="fas fa-print text-muted"></i>
+                        </div>
+                        <h5 class="card-title">Tipo de Impresora</h5>
+                        <small>Se puede elegir el tipo de impresora por defecto para imprimir las facturas. Convencional en A4 o la de ticket</small>
+                        <hr>
+                        <form method="post" action="{{route('config.update', obj_variable_global('TIPO_IMPRESORA')->id)}}" >
+                            @csrf @method('patch')
+                            <select class="form-control form-select mb-3" name="valor">
+                                <option value="AMBAS" {{ variable_global('TIPO_IMPRESORA') == 'AMBAS' ? 'selected' : '' }}>AMBAS</option>
+                                <option value="TERMICA" {{ variable_global('TIPO_IMPRESORA') == 'TERMICA' ? 'selected' : '' }}>TERMICA</option>
+                                <option value="A4" {{ variable_global('TIPO_IMPRESORA') == 'A4' ? 'selected' : '' }}>A4</option>
+                            </select>
+                            <button class="btn btn-success">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
             
         </div>
         

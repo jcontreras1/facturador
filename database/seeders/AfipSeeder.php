@@ -52,12 +52,12 @@ class AfipSeeder extends Seeder
 
         //Tipos de Comprobantes
 
-        TipoComprobante::firstOrCreate(['codigo_afip' => '1', 'codigo' => 'A','descripcion' => 'Factura A']);
-        TipoComprobante::firstOrCreate(['codigo_afip' => '3', 'codigo' => 'CA','descripcion' => 'Nota de Crédito A']);
-        TipoComprobante::firstOrCreate(['codigo_afip' => '6', 'codigo' => 'B','descripcion' => 'Factura B']);
-        TipoComprobante::firstOrCreate(['codigo_afip' => '8', 'codigo' => 'CB','descripcion' => 'Nota de Crédito B']);
-        TipoComprobante::firstOrCreate(['codigo_afip' => '11', 'codigo' => 'C','descripcion' => 'Factura C']);
-        TipoComprobante::firstOrCreate(['codigo_afip' => '13', 'codigo' => 'CC','descripcion' => 'Nota de Crédito C']);
+        TipoComprobante::firstOrCreate(['codigo_afip' => '1', 'codigo' => 'A','descripcion' => 'Factura A', 'letra' => 'A']);
+        TipoComprobante::firstOrCreate(['codigo_afip' => '3', 'codigo' => 'CA','descripcion' => 'Nota de Crédito A', 'letra' => 'A']);
+        TipoComprobante::firstOrCreate(['codigo_afip' => '6', 'codigo' => 'B','descripcion' => 'Factura B', 'letra' => 'B']);
+        TipoComprobante::firstOrCreate(['codigo_afip' => '8', 'codigo' => 'CB','descripcion' => 'Nota de Crédito B', 'letra' => 'B']);
+        TipoComprobante::firstOrCreate(['codigo_afip' => '11', 'codigo' => 'C','descripcion' => 'Factura C', 'letra' => 'C']);;
+        TipoComprobante::firstOrCreate(['codigo_afip' => '13', 'codigo' => 'CC','descripcion' => 'Nota de Crédito C', 'letra' => 'C']);
         
     }
     
