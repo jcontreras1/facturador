@@ -56,7 +56,7 @@
                             <label for="importe_total" class="form-label">Importe Unitario</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="importe_total" name="importe_unitario_subtotal" required>
+                                <input type="number" class="form-control" id="importe_total" step="0.01" name="importe_unitario_subtotal" required>
                             </div>
                         </div>
                         <hr>
