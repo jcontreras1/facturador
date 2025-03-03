@@ -1,5 +1,6 @@
 <x-app-layout>
     
+    @auth        
     <div class="container">
         <div class="row">
             <div class="col-12 col-md-4 mb-3">
@@ -11,7 +12,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="col-12 col-md-4 mb-3">
                 <div class="card h-100" style="background-color: cadetblue;">
                     <div class="card-body">
@@ -21,7 +22,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="col-12 col-md-4 mb-3">
                 <div class="card h-100" style="background-color: indianred;">
                     <div class="card-body">
@@ -41,10 +42,11 @@
                     </div>
                 </div>
             </div>
-
-
+            
+            
         </div>
     </div>
+    @endauth
     
     
 </x-app-layout>
