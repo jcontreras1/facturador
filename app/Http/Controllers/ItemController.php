@@ -19,6 +19,16 @@ class ItemController extends Controller
         return redirect()->route('items.index');
     }
 
+    public function update(StoreItemRequest $request, Item $item){
+        $item->update($request->validated());
+        toast('Item actualizado correctamente', 'success');
+        return redirect()->route('items.index');
+    }
+
+    public function edit(Item $item){
+        return view('items.edit')->with(compact('item'));
+    }
+
     public function destroy(Item $item){
         $item->delete();
         toast('Item eliminado correctamente', 'success');

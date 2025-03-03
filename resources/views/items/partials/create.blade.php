@@ -18,7 +18,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="valor" class="form-label">Valor Unitario <span class="text-danger">*</span></label>
-                        <input type="number" autocomplete="off" class="form-control" id="valor" name="precio_unitario" required>
+                        <input type="number" step="0.01" autocomplete="off" class="form-control" id="valor" name="precio_unitario" required>
                     </div>
                 </div>
                 <div class="modal-footer">
