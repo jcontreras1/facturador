@@ -45,7 +45,7 @@ class NCCController extends Controller
             'PtoVta' => intval($punto_de_venta),
             'CbteTipo' => intval($tipoComprobante->codigo_afip),
             'Concepto' => $comprobante->concepto,
-            'DocTipo' => $comprobante->tipo_documento_id,
+            'DocTipo' => $comprobante->tipo_documento_id ?? 99, //consumidor final
             'DocNro' => $comprobante->cuit_dni ?? 0,
             'CbteDesde' => $numero,
             'CbteHasta' => $numero,
