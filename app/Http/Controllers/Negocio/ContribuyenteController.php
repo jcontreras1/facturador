@@ -13,6 +13,17 @@ use Illuminate\Http\Request;
 class ContribuyenteController extends Controller
 {
     public function padronv4(){
+        $afip = new Afip();
+        $doc = '92450700';
+        try {
+            $contribuyente = $afip->PadronAlcance13->DniACuit($doc);
+            return $contribuyente;
+            $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($contribuyente);
+        } catch (\Throwable $th) {
+            return response(['error' => $th->getMessage()], 500);
+        }    
+        return $contribuyente;
+        
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
         return response($tipoComprobante, 201);
         $afip = new Afip();
@@ -34,6 +45,9 @@ class ContribuyenteController extends Controller
         if($request->tipo == 'dni'){
             try {
                 $contribuyente = $afip->PadronAlcance13->DniACuit($doc);
+                if(!$contribuyente){
+                    return response(['error' => 'No se encontraron datos para el DNI ingresado'], 404);
+                }
                 $contribuyente = $afip->PadronAlcance13->GetTaxpayerDetails($contribuyente);
             } catch (\Throwable $th) {
                 return response(['error' => $th->getMessage()], 500);

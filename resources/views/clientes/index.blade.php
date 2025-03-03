@@ -17,8 +17,8 @@
                 </thead>
                 <tbody>
                     @foreach($clientes as $cliente)
-                    <tr role="button" onClick="window.location.href='{{route('clientes.dashboard', $cliente->id)}}'">
-                        <td>
+                    <tr>
+                        <td role="button" onClick="window.location.href='{{route('clientes.dashboard', $cliente->id)}}'">
                             {{$cliente->nombre}} 
                             @if($cliente->requiere_facturacion_mensual)
                                 <i class="fas fa-check-circle text-success" title="Requiere facturación mensual"></i>
@@ -36,6 +36,10 @@
                         </td>
 
                         <td>
+                            @if(esMonotributista())
+                            <a href="{{route('cliente.comprobante.create.c', $cliente)}}" title="Nueva factura C" class="btn btn-success btn-sm"><i class="far fa-file-alt"></i></a>
+                            @endif
+                            <a href="{{route('clientes.edit', $cliente->id)}}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
                             <a href="{{route('clientes.dashboard', $cliente->id)}}" class="btn btn-primary btn-sm"><i class="fas fa-list"></i></a>
                         </td>
                         
@@ -46,41 +50,7 @@
             @else
             <em>No hay clientes registrados</em>
             @endif
-
         </div>
     </div>
-
-    <form id="formFacturacionMensual" action="{{ route('clientes.facturacion') }}" method="POST" class="d-inline">
-        @csrf
-    </form>
-
-     @push('scripts')
-     <script>
-
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('btnFacturacionMensual').addEventListener('click', function() {
-                Swal.fire({
-                    title: 'Facturación mensual',
-                    html: `Este proceso le emite una factura con sus correspondientes conceptos a todos los clientes con el ícono: <i class='fas fa-check-circle text-success'></i>. <br>
-                    ¿Confirma el proceso? o prefiere <a href="{{route('clientes.index')}}">Ver un resumen</a>`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Facturar',
-                    cancelButtonText: 'Cancelar',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById('formFacturacionMensual').submit();
-                    }
-                });
-            });
-        });
-
-        const dashboardCliente = (e) => {
-            console.log(e)
-            // const url = e.target.getAttribute('data-url');
-            // window.location.href = url;
-        }
-        </script>
-    @endpush
 
 </x-app-layout>

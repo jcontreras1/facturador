@@ -22,6 +22,10 @@
         </div>
         @endif
         <hr>
+        @if(!count($clientes))
+        <em>No hay clientes con facturación mensual definida.</em>
+        @endif
+
         <div class="row">
             @foreach($clientes as $cliente)
             @if(count($cliente->servicios))

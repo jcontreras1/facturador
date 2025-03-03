@@ -1,7 +1,7 @@
 <x-app-layout>
     <!-- Modal -->
     @include('comprobantes.partials.enviarFacturaMail')
-       <div class="container">
+    <div class="container">
         <x-title title="Comprobantes">
             <a href="{{ route('lote.create.c') }}" class="btn btn-success">
                 <i class="fas fa-user-secret"></i> Facturar C por Monto
@@ -42,7 +42,7 @@
                     <td>${{ pesosargentinos($comprobante->importe_total) }}</td>
                     <td class="d-flex gap-1">
                         @if($comprobante->cae)
-                        <a href="{{route('comprobante.descargar.termica', $comprobante)}}" class="btn btn-primary btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
+                        <a href="{{route('comprobante.descargar.termica', $comprobante)}}" class="btn btn-primary btn-sm btnDescargar" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <a href="{{route('comprobante.descargar.pdf', $comprobante)}}" class="btn btn-primary btn-sm" title="Descargar en PDF"><i class="far fa-file-pdf"></i></a>
                         <button 
                         onclick="urlEnviarMail('{{ route('comprobante.enviar.mail', $comprobante) }}', '{{$comprobante->cliente?->email}}')" 
@@ -74,39 +74,70 @@
     
     @push('scripts')
     <script>
-        // document.addEventListener('DOMContentLoaded', function() {
-            const btns = document.querySelectorAll('.btnBloquear');
-            
-
-            function anularFactura (url, id, numero){
-                Swal.fire({
-                    title: 'Anular Factura',
-                    text: `¿Anular la factura N° ${numero}?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Anular',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        let form = document.getElementById('formAnularFactura');
-                        form.action = url;
-                        form.submit();            
-                    }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btnDescargar').forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevenir el comportamiento por defecto del enlace
+                    
+                    // Obtener la URL de la ruta del enlace
+                    const url = button.getAttribute('href');
+                    
+                    // Realizar la solicitud con Axios
+                    axios.get(url)
+                    .then(function(response) {
+                        // Crear una nueva ventana
+                        const newWindow = window.open('', '_blank', 'width=800,height=600');
+                        
+                        // Escribir el contenido recibido en la nueva ventana
+                        newWindow.document.write(response.data);
+                        
+                        // Asegurarse de que el contenido esté cargado antes de imprimir
+                        newWindow.document.close();
+                        
+                        newWindow.onload = function() {
+                        // Imprimir el contenido una vez que se haya cargado todo
+                        newWindow.print();
+                    };
+                    })
+                    .catch(function(error) {
+                        console.error("Error al cargar el contenido:", error);
+                        alert("Ocurrió un error al intentar cargar el contenido.");
+                    });
                 });
-            }
-
-            function urlEnviarMail(url, mail) {
-                document.getElementById('modalMailCliente').value = mail;
-                document.getElementById('formEnviarFacturaMail').action = url;
-            }
-            btnSubmitEnviarFactura = document.getElementById('btnSubmitEnviarFactura');
-            btnSubmitEnviarFactura.addEventListener('click', (e) => {
-                e.preventDefault();
-                btns.forEach(btn => btn.disabled = true);
-                btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-                let form = document.getElementById('formEnviarFacturaMail');
-                form.submit();
             });
+        });
+        const btns = document.querySelectorAll('.btnBloquear');
+        
+        
+        function anularFactura (url, id, numero){
+            Swal.fire({
+                title: 'Anular Factura',
+                text: `¿Anular la factura N° ${numero}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Anular',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let form = document.getElementById('formAnularFactura');
+                    form.action = url;
+                    form.submit();            
+                }
+            });
+        }
+        
+        function urlEnviarMail(url, mail) {
+            document.getElementById('modalMailCliente').value = mail;
+            document.getElementById('formEnviarFacturaMail').action = url;
+        }
+        btnSubmitEnviarFactura = document.getElementById('btnSubmitEnviarFactura');
+        btnSubmitEnviarFactura.addEventListener('click', (e) => {
+            e.preventDefault();
+            btns.forEach(btn => btn.disabled = true);
+            btnSubmitEnviarFactura.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            let form = document.getElementById('formEnviarFacturaMail');
+            form.submit();
+        });
         // });
         
     </script>

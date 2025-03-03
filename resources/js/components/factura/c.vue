@@ -1,6 +1,11 @@
 <template>
   <div class="container">
-    <h3>Crear Comprobante C</h3>
+    <h3 class="d-flex justify-content-between align-items-center">
+      Crear Comprobante C
+    <button type="button" class="btn btn-primary" @click="back">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+  </h3>
     <hr>
     <form @submit.prevent="submitForm">
       <!-- Datos de la Factura -->
@@ -173,7 +178,7 @@ const importeTotalFormatoArgentino = computed(() => {
 
 // Computed property to disable document input for "Consumidor Final"
 const isDocumentoDisabled = computed(() => form.tipoDocumentoId === '99')
-
+const back = () => { history.back();}
 const invalidDocument = computed(() => {
   //si es consumidor final no se valida
   if(form.tipoDocumentoId === '99') { return false; }
