@@ -1,7 +1,11 @@
 <x-app-layout>
     
-    @auth        
     <div class="container">
+        
+            @guest
+            @include('welcome')
+            @endguest
+        @auth        
         <div class="row">
             <div class="col-12 col-md-4 mb-3">
                 <div class="card h-100" style="background-color: coral;">
@@ -45,8 +49,8 @@
             
             
         </div>
+        @endauth
     </div>
-    @endauth
     
     
 </x-app-layout>

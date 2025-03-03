@@ -6,6 +6,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 fs-6">
+                @auth
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('dashboard') }}"><strong>{{ __('Home')}}</strong></a>
                 </li>
@@ -21,6 +22,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('config.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('config.index') }}">Configuraciones</a>
                 </li>
+                @endauth
             </ul>
             <ul class="navbar-nav ms-auto fs-6">
                 @guest
