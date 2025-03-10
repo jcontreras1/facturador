@@ -15,8 +15,8 @@
                             <label class="text">CUIT/CUIL/DNI</label>
                             <div class="input-group">
                                 <input name="cuit" id="nuevo_cliente_cuit" class="form-control" type="text">
-                                <button title="Buscar en padron de afip" class="btn btn-secondary" type="button" id="searchCliente">
-                                    <i class="fas fa-search"></i>
+                                <button title="Buscar en padron de afip" class="btn btn-primary" type="button" id="searchCliente">
+                                   <i class="fas fa-search"></i> Buscar 
                                 </button>
                             </div>
                         </div>
