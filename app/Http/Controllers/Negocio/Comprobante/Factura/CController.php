@@ -52,6 +52,7 @@ class CController extends Controller
                     'porcentaje_descuento' => $linea['bonificacion'],
                     'importe_descuento' => $linea['importeBonificado'],
                     'importe_subtotal' => $linea['subtotal'],
+                    'importe_subtotal_con_iva' => $linea['subtotal'],
                 ]);
             }
             

@@ -12,11 +12,11 @@
         
         <!-- Encabezado de la factura -->
         <table class="header-table">
-            <tr>
-                <td colspan="3" style="text-align: center; border-bottom: 2px solid #000; padding: 10px;">
-                    <strong>ORIGINAL</strong>
-                </td>
-            </tr>
+            {{-- <tr> --}}
+                {{-- <td colspan="3" style="text-align: center; border-bottom: 2px solid #000; padding: 10px;"> --}}
+                    {{-- <strong>ORIGINAL</strong> --}}
+                {{-- </td> --}}
+            {{-- </tr> --}}
             <tr>
                 <!-- Columna izquierda con logo o nombre -->
                 <td class="left-column">
@@ -95,18 +95,24 @@
             <thead>
                 <tr>
                     <th>Descripción</th>
-                    <th>Cantidad</th>
+                    <th>Cant.</th>
                     <th>U. Medida</th>
                     <th>Precio Unit.</th>
                     <th>% Bonif.</th>
-                    <th>Imp. Bonif.</th>
+                    {{-- <th>Imp. Bonif.</th> --}}
                     <th>Subtotal</th>
+                    
+                    @if($comprobante->tipoComprobante->codigo == 'A')
+                    <th>IVA</th>
+                    <th>Subtotal c/IVA</th>
+                    
+                    @endif
                 </tr>
             </thead>
             <tbody>
                 @foreach($comprobante->detalle as $item)  
                 <tr>
-                    <td>
+                    <td class="item-description">
                         @if($item->codigo)
                         [{{$item->codigo}}]
                         @endif
@@ -116,8 +122,15 @@
                     <td>{{$item->unidad_medida}}</td>
                     <td>{{pesosargentinos($item->importe_unitario)}}</td>
                     <td>{{$item->porcentaje_descuento}}</td>
-                    <td>{{pesosargentinos($item->importe_descuento)}}</td>
+                    {{-- <td>{{pesosargentinos($item->importe_descuento)}}</td> --}}
                     <td>{{pesosargentinos($item->importe_subtotal)}}</td>
+                    
+                    @if($comprobante->tipoComprobante->codigo == 'A')
+                    
+                    <td>{{ $item->iva->descripcion }}</td>
+                    <td>{{pesosargentinos($item->importe_subtotal_con_iva)}}</td>
+                    
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
@@ -127,11 +140,36 @@
         <!-- Total de la factura en un cuadro -->
         <div class="ultra-footer">
             <div class="total-container">
+
+                @if($comprobante->tipoComprobante->codigo == 'A')
+                <span class="total-label">Importe Neto Gravado:</span><span class="total-value"> ${{pesosargentinos($comprobante->detalle->sum('importe_subtotal'))}}</span>
+                <br>
+                @foreach ($comprobante->detalle->groupBy('iva_id') as $ivaId => $items)
+                    @php
+                        $iva = $items->first()->iva;
+                        $baseImp = $items->sum('importe_subtotal');
+                        $importeIva = $items->sum(function($item) {
+                            return $item->importe_subtotal_con_iva - $item->importe_subtotal;
+                        });
+                    @endphp
+                    <span class="total-label">IVA {{$iva->descripcion}}:</span><span class="total-value"> ${{pesosargentinos($importeIva)}}</span>
+                    <br>
+                @endforeach
+                <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
+                <br>
+                <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
+                
+                @else
+
+                {{-- Monotributo --}}
+                
                 <span class="total-label">Subtotal:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_neto)}}</span>
                 <br>
                 <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
                 <br>
                 <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
+                
+                @endif
             </div>
             
             <div class="footer">

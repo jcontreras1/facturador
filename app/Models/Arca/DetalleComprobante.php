@@ -20,6 +20,7 @@ class DetalleComprobante extends Model
         'iva_id',
         'importe_iva',
         'importe_subtotal',
+        'importe_subtotal_con_iva',
     ];
 
     public function comprobante()

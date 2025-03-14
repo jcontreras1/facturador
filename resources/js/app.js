@@ -8,10 +8,14 @@ window.Alpine = Alpine;
 Alpine.start();
 
 
+import facturaa from './components/factura/a.vue';
+import facturab from './components/factura/b.vue';
 import facturac from './components/factura/c.vue';
 
 
 const app = createApp({});
+app.component('factura-a', facturaa);
+app.component('factura-b', facturab);
 app.component('factura-c', facturac);
 
 app.mount('#app');
