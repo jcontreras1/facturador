@@ -35,6 +35,13 @@ class InstallationController extends Controller
             return redirect()->back();
         }
         
+        if (!is_dir(afipDir())) {
+            if (!mkdir(afipDir(), 0644, true)) {
+                toast('Error al crear la carpeta para la clave privada', 'error');
+                return redirect()->back();
+            }
+        }
+
         $filePath = afipDir() . 'key';  // Archivo donde se guardará la clave privada
         
         // Escribir la clave privada en el archivo
