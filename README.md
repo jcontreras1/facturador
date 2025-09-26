@@ -1,66 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Guía de Instalación del Facturador hecho en LARAVEL
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el proyecto Laravel desde el repositorio. Sigue estos pasos cuidadosamente para asegurar una instalación exitosa.
 
-## About Laravel
+## Prerrequisitos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP**: Versión 8.3 o superior
+- **Composer**: Última versión instalada
+- **Git**: Para clonar el repositorio
+- **Base de datos**: SQLite (recomendado por simplicidad) o MySQL
+- **Node.js** (opcional): Para compilar activos CSS/JS
+- **OpenSSL** (usuarios de Windows): Si compilas activos en Windows, podrías necesitar el plugin OpenSSL. Descarga la última serie 3.x (edición Light recomendada) desde [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html).
+  - **Requisitos del sistema para OpenSSL**:
+    - Mínimo: Windows XP o posterior, 32MB RAM, CPU 200MHz, 30MB de espacio en disco
+    - Recomendado: Windows XP o posterior, 128MB RAM, CPU 500MHz, 300MB de espacio en disco
+  - Asegúrate de instalar OpenSSL 3.5.x (lanzado el 9 de abril de 2025), que es una versión LTS.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instrucciones de Instalación
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/jcontreras1/facturador.git
+   cd facturador
+   ```
 
-## Learning Laravel
+2. **Instalar dependencias de PHP**
+   ```bash
+   composer install
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+3. **Configurar el archivo de entorno**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+4. **Configurar la base de datos**
+   ```bash
+   php artisan migrate
+   ```
+   - Si se te pregunta sobre la creación de la base de datos, selecciona "sí".
+   - Usa SQLite por simplicidad. Si prefieres MySQL, modifica el conector en el archivo `.env` más adelante.
+   - Para poblar la base de datos con datos iniciales:
+     ```bash
+     php artisan db:seed
+     ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+5. **Crear enlace simbólico para almacenamiento**
+   ```bash
+   php artisan storage:link
+   ```
 
-## Laravel Sponsors
+6. **Configurar para entonrnos como cPanel**
+   - Copia los archivos del directorio `public` a la carpeta `public_html`:
+     ```bash
+     cp -r public/* ../public_html/
+     ```
+   - Edita el archivo `index.php` en la carpeta `public_html/facturar`:
+     ```bash
+     nano ../public_html/facturar/index.php
+     ```
+   - Busca las siguientes líneas y modifícalas para que apunten al directorio correcto del proyecto:
+     ```php
+     require __DIR__.'/../facturador/vendor/autoload.php';
+     $app = require_once __DIR__.'/../facturador/bootstrap/app.php';
+     ```
+   - Guarda los cambios. En este punto, tu aplicación debería estar **funcionando** en `http://tudominio.com/facturar`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+7. **Configurar el archivo `.env`**
+   - Edita el archivo `.env`:
+     ```bash
+     nano .env
+     ```
+   - Configura las siguientes variables:
+     ```env
+     APP_NAME="Facturador" # O el nombre que quieras
+     APP_TIMEZONE='America/Argentina/Cordoba' 
+     APP_URL=        #<== tu sitio web
+     APP_LOCALE=es
+     APP_FALLBACK_LOCALE=en
+     APP_FAKER_LOCALE=es_AR
+     ASSET_URL=${APP_URL}
+     SANCTUM_STATEFUL_DOMAINS=        #Tu sitio web sin https ni www. Ej: misitioweb.com
+     SESSION_DOMAIN=                  #Tu sitio web sin https ni www. con un punto delante. Ej: .misitioweb.com
+     VITE_APP_NAME="${APP_NAME}"
+     SWEET_ALERT_MIDDLEWARE_AUTO_CLOSE=false
+     SWEET_ALERT_MIDDLEWARE_TOAST_POSITION='top-end'
+     SWEET_ALERT_MIDDLEWARE_TOAST_CLOSE_BUTTON=true
+     SWEET_ALERT_AUTO_DISPLAY_ERROR_MESSAGES=true
+     ```
+   - Si usas un nombre con espacios, asegúrate de usar comillas, por ejemplo: `APP_NAME="Mi Facturador"`.
 
-### Premium Partners
+8. **Configurar el correo electrónico**
+   - En el archivo `.env`, busca el bloque de configuración de correo y actualízalo según tu proveedor de correo. Ejemplo:
+     ```env
+     MAIL_MAILER=smtp
+     MAIL_HOST=smtp.tuproveedor.com
+     MAIL_PORT=587
+     MAIL_USERNAME=tu_usuario
+     MAIL_PASSWORD=tu_contraseña
+     MAIL_ENCRYPTION=tls
+     MAIL_FROM_ADDRESS="tucorreo@tudominio.com"
+     MAIL_FROM_NAME="${APP_NAME}"
+     ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+9. **Compilar activos CSS/JS**
+   - Si tienes Node.js instalado, compila los activos:
+     ```bash
+     npm install
+     npm run build
+     ```
+   - Si **no tienes Node.js** o estás usando cPanel:
+     - Compila los activos manualmente en tu máquina local ejecutando los comandos anteriores.
+     - Sube los archivos generados en `public/build` a la carpeta `public_html/facturar/build` en el servidor.
+   - Nota para usuarios de Windows: Asegúrate de tener instalado el plugin OpenSSL (podes descargarlo desde [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html)) si encuentras problemas relacionados con certificados SSL durante la compilación.
 
-## Contributing
+## Notas para cPanel
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Asegúrate de que la carpeta `public_html/facturar` sea accesible y que los permisos estén configurados correctamente (generalmente 755 para carpetas y 644 para archivos).
+- Verifica que el archivo `index.php` apunte correctamente al directorio `facturador` como se indicó en el paso 6.
+- Si usas MySQL en lugar de SQLite, configura las variables de conexión en el archivo `.env`:
+  ```env
+  DB_CONNECTION=mysql
+  DB_HOST=127.0.0.1
+  DB_PORT=3306
+  DB_DATABASE=nombre_de_tu_base_de_datos
+  DB_USERNAME=tu_usuario
+  DB_PASSWORD=tu_contraseña
+  ```
 
-## Code of Conduct
+## Solución de Problemas
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Errores de base de datos**: Asegúrate de que la base de datos esté creada y que las credenciales en `.env` sean correctas.
+- **Errores de compilación de activos**: Si no puedes compilar en el servidor, hazlo localmente y sube los archivos generados.
+- **Errores de OpenSSL en Windows**: Descarga e instala la versión más reciente de OpenSSL desde [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html). Usa la edición Light de la serie 3.x.
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+¡Tu aplicación Laravel ya debería estar lista y funcionando! Si tienes problemas, contactame o revisá la documentación oficial de Laravel.
