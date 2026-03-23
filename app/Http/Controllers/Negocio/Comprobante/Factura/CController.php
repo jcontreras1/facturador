@@ -115,7 +115,8 @@ class CController extends Controller
         Cliente $cliente, 
         $periodoDesde = null, 
         $periodoHasta = null, 
-        $periodoVencimiento = null): Comprobante | Exception{
+        $periodoVencimiento = null,
+        array $lineasAdicionales = []): Comprobante | Exception{
 
             // throw new Exception('Error en la facturación mensual. Cliente: ' . $cliente->nombre . ', Periodo Desde: ' . $periodoDesde . ', Periodo Hasta: ' . $periodoHasta . ', Periodo Vencimiento: ' . $periodoVencimiento);
 
@@ -131,6 +132,44 @@ class CController extends Controller
         try {            
             // Configuramos el punto de venta
             $puntoVenta = variable_global('PUNTO_VENTA');
+
+            $lineasFacturacion = [];
+            foreach ($cliente->servicios as $servicio) {
+                $cantidad = floatval($servicio->cantidad ?? 0);
+                $importeUnitario = floatval($servicio->importe_total ?? 0);
+                if ($cantidad <= 0 || $importeUnitario <= 0) {
+                    continue;
+                }
+
+                $lineasFacturacion[] = [
+                    'descripcion' => $servicio->descripcion,
+                    'cantidad' => $cantidad,
+                    'importe_unitario' => $importeUnitario,
+                    'subtotal' => round($cantidad * $importeUnitario, 2),
+                ];
+            }
+
+            foreach ($lineasAdicionales as $linea) {
+                $cantidad = floatval($linea['cantidad'] ?? 0);
+                $importeUnitario = floatval($linea['importe_unitario'] ?? 0);
+                $descripcion = trim((string) ($linea['descripcion'] ?? ''));
+                if ($descripcion === '' || $cantidad <= 0 || $importeUnitario <= 0) {
+                    continue;
+                }
+
+                $lineasFacturacion[] = [
+                    'descripcion' => $descripcion,
+                    'cantidad' => $cantidad,
+                    'importe_unitario' => $importeUnitario,
+                    'subtotal' => round($cantidad * $importeUnitario, 2),
+                ];
+            }
+
+            if (count($lineasFacturacion) === 0) {
+                throw new Exception('El cliente '.$cliente->nombre.' no tiene líneas válidas para facturar');
+            }
+
+            $importeTotal = round(collect($lineasFacturacion)->sum('subtotal'), 2);
             // Crear el comprobante
             $comprobante = Comprobante::create([
                 'tipo_documento_id' => $cliente->tipo_documento_afip,
@@ -140,8 +179,8 @@ class CController extends Controller
                 'tipo_comprobante_id' => $tipoComprobante->id,
                 'punto_venta' => $puntoVenta,
                 'created_by' => auth()->user()->id,
-                'importe_neto' => $cliente->servicios()->sum('importe_neto'),
-                'importe_total' => $cliente->servicios()->sum('importe_total'),
+                'importe_neto' => $importeTotal,
+                'importe_total' => $importeTotal,
                 'condicion_iva_receptor_id' => $cliente->condicionIva->id,
                 'fecha_emision' => today()->format('Y-m-d'),
                 'fecha_servicio_desde' => intval($periodoDesde) ? intval(date('Ymd', strtotime($periodoDesde))) : intval(today()->startOfMonth()->format('Ymd')),
@@ -152,16 +191,16 @@ class CController extends Controller
             ]);
             
             // Crear detalles del comprobante
-            foreach ($cliente->servicios as $servicio) {
+            foreach ($lineasFacturacion as $linea) {
                 DetalleComprobante::create([
                     'comprobante_id' => $comprobante->id,
-                    'descripcion' => $servicio->descripcion,
-                    'cantidad' => $servicio->cantidad,
+                    'descripcion' => $linea['descripcion'],
+                    'cantidad' => $linea['cantidad'],
                     'unidad_medida' => 'unidad', // Se asume que es una unidad por ahora
-                    'importe_unitario' => $servicio->importe_neto,
+                    'importe_unitario' => $linea['importe_unitario'],
                     'porcentaje_descuento' => 0,
                     'importe_descuento' => 0,
-                    'importe_subtotal' => $servicio->importe_total,
+                    'importe_subtotal' => $linea['subtotal'],
                 ]);
             }
             
@@ -184,9 +223,9 @@ class CController extends Controller
                 'FchServDesde' => intval(date('Ymd', strtotime($comprobante->fecha_servicio_desde))),
                 'FchServHasta' => intval(date('Ymd', strtotime($comprobante->fecha_servicio_desde))),
                 'FchVtoPago' => intval(date('Ymd', strtotime($comprobante->fecha_vencimiento_pago))),
-                'ImpTotal' => $cliente->servicios()->sum(column: 'importe_total'),
+                'ImpTotal' => $importeTotal,
                 'ImpTotConc' => 0,
-                'ImpNeto' => $cliente->servicios()->sum('importe_neto'),
+                'ImpNeto' => $importeTotal,
                 'ImpOpEx' => 0,
                 'ImpIVA' => 0,
                 'ImpTrib' => 0,

@@ -89,17 +89,42 @@ class ClienteController extends Controller
     public function facturacionMensual(Request $request){
         
         $clientesData = $request->only(['cliente_id', 'fechaDesde', 'fechaHasta', 'fechaVencimiento']);
+        $adicionales = $request->input('adicionales', []);
         $notificar = $request->notificar == "true" ? true : false;
         $msg = '';
         foreach ($clientesData['cliente_id'] as $index => $clienteId) {
             $cliente = Cliente::find($clienteId);
             if ($cliente) {
                 try {
+                    $lineasAdicionales = [];
+                    if (isset($adicionales[$clienteId])) {
+                        $descripciones = $adicionales[$clienteId]['descripcion'] ?? [];
+                        $cantidades = $adicionales[$clienteId]['cantidad'] ?? [];
+                        $importesUnitarios = $adicionales[$clienteId]['importe_unitario'] ?? [];
+
+                        foreach ($descripciones as $i => $descripcion) {
+                            $cantidad = floatval($cantidades[$i] ?? 0);
+                            $importeUnitario = floatval($importesUnitarios[$i] ?? 0);
+                            $descripcion = trim((string) $descripcion);
+
+                            if ($descripcion === '' || $cantidad <= 0 || $importeUnitario <= 0) {
+                                continue;
+                            }
+
+                            $lineasAdicionales[] = [
+                                'descripcion' => $descripcion,
+                                'cantidad' => $cantidad,
+                                'importe_unitario' => $importeUnitario,
+                            ];
+                        }
+                    }
+
                     $comprobante = CController::facturacionMensual(
                         $cliente,
                         $clientesData['fechaDesde'][$index] ? intval(str_replace('-', '', $clientesData['fechaDesde'][$index])) : intval(date('Ymd')),
                         $clientesData['fechaDesde'][$index] ? intval(str_replace('-', '', $clientesData['fechaHasta'][$index])) : intval(date('Ymd')),
-                        $clientesData['fechaVencimiento'][$index] ? intval(str_replace('-', '', $clientesData['fechaVencimiento'][$index])) : intval(date('Ymd'))
+                        $clientesData['fechaVencimiento'][$index] ? intval(str_replace('-', '', $clientesData['fechaVencimiento'][$index])) : intval(date('Ymd')),
+                        $lineasAdicionales
                     );
                     if ($notificar && $cliente->email && filter_var($cliente->email, FILTER_VALIDATE_EMAIL)) {
                         Mail::to($cliente->email)->send(new NuevoComprobante($comprobante));

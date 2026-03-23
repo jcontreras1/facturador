@@ -90,6 +90,29 @@
                                     <button type="button" onclick="setHoy('{{$cliente->id}}')" class="btn btn-info btn-sm mr-2"><i class="far fa-lightbulb"></i> Hoy</button>
                                 </div>
                             </div>
+
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <h6>Adicionales para esta factura</h6>
+                                    <button type="button" class="btn btn-primary btn-sm mb-2" onclick="agregarLineaAdicional('{{$cliente->id}}')">
+                                        <i class="fas fa-plus"></i> Agregar línea
+                                    </button>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 55%;">Descripción</th>
+                                                    <th style="width: 15%;">Cantidad</th>
+                                                    <th style="width: 20%;">Importe Unitario</th>
+                                                    <th style="width: 10%;">Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="adicionalesBody{{$cliente->id}}"></tbody>
+                                        </table>
+                                    </div>
+                                    <small class="text-muted">Estas líneas se suman a los servicios mensuales al emitir la misma factura.</small>
+                                </div>
+                            </div>
                             
                         </div>
                     </div>
@@ -115,7 +138,44 @@
         document.getElementById('btnFacturarNotificar').addEventListener('click', function() {
             facturar(true);
         });
+
+        @foreach($clientes as $cliente)
+        window.agregarLineaAdicional('{{ $cliente->id }}');
+        @endforeach
     });
+
+    function agregarLineaAdicional(clienteId) {
+        const body = document.getElementById(`adicionalesBody${clienteId}`);
+        const row = document.createElement('tr');
+        row.classList.add('linea-adicional');
+        row.innerHTML = `
+            <td>
+                <textarea rows="2" class="form-control form-control-sm" name="adicionales[${clienteId}][descripcion][]" placeholder="Descripción del adicional"></textarea>
+            </td>
+            <td>
+                <input type="number" step="0.01" min="0" class="form-control form-control-sm" name="adicionales[${clienteId}][cantidad][]" value="1">
+            </td>
+            <td>
+                <input type="number" step="0.01" min="0" class="form-control form-control-sm" name="adicionales[${clienteId}][importe_unitario][]" value="0">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarLineaAdicional(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        body.appendChild(row);
+    }
+
+    function eliminarLineaAdicional(button) {
+        const body = button.closest('tbody');
+        const row = button.closest('tr');
+        row.remove();
+        if (body.querySelectorAll('tr').length === 0) {
+            const clienteId = body.id.replace('adicionalesBody', '');
+            agregarLineaAdicional(clienteId);
+        }
+    }
     
     function setMesAnterior(clienteId) {
         let fechaDesde = new Date('{{ today()->subMonth()->startOfMonth()->format('Y-m-d') }}');
