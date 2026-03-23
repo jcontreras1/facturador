@@ -89,6 +89,7 @@
                         <h5 class="card-title mb-3">Base imponible IIBB</h5>
                         <div class="display-5 text-end toggle-value" data-value="${{ $baseImponibleIibb }}">***</div>
                         <div class="mt-3 small opacity-75">Fórmula: facturado menos notas de crédito del mismo período.</div>
+                        <div class="mt-3 small opacity-75 fw-bold">Aclaración: no está contemplado el tope mínimo por actividad.</div>
                     </div>
                 </div>
             </div>

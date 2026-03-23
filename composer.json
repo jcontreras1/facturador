@@ -8,16 +8,16 @@
     "require": {
         "php": "^8.2",
         "bacon/bacon-qr-code": "^3.0",
-        "barryvdh/laravel-dompdf": "^3.0",
-        "laravel/framework": "^11.31",
+        "barryvdh/laravel-dompdf": "^3.1.2",
+        "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "realrashid/sweet-alert": "^7.2"
+        "realrashid/sweet-alert": "^7.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "laravel-lang/common": "^6.4",
-        "laravel/breeze": "^2.2",
+        "laravel-lang/common": "^6.8",
+        "laravel/breeze": "^2.4",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
