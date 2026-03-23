@@ -4,6 +4,7 @@ use App\Models\Arca\Comprobante;
 use App\Models\Factura;
 use App\Models\VariableGlobal;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 function variable_global($clave): string{
@@ -25,6 +26,77 @@ function pesosargentinos($importe){
 		$importe = floatval($importe);
 	}
 	return number_format($importe, 2, ',', '.');
+}
+
+function avatar_storage_relative_path(?string $value = null): ?string
+{
+	$value = $value ?? variable_global('AVATAR');
+	if (!$value) {
+		return null;
+	}
+
+	$storageUrl = rtrim(url('/storage'), '/');
+
+	if (str_starts_with($value, $storageUrl)) {
+		$value = substr($value, strlen($storageUrl));
+	} elseif (str_starts_with($value, '/storage/')) {
+		$value = substr($value, strlen('/storage/'));
+	}
+
+	$value = ltrim($value, '/');
+
+	return $value !== '' ? $value : null;
+}
+
+function avatar_public_url(?string $value = null): ?string
+{
+	$path = avatar_storage_relative_path($value);
+	if (!$path) {
+		return null;
+	}
+
+	return url('/storage/' . ltrim($path, '/'));
+}
+
+function avatar_absolute_path(?string $value = null): ?string
+{
+	$path = avatar_storage_relative_path($value);
+	if (!$path || !Storage::disk('public')->exists($path)) {
+		return null;
+	}
+
+	return Storage::disk('public')->path($path);
+}
+
+function desglose_iva_comprobante(Comprobante $comprobante)
+{
+	return $comprobante->detalle
+		->filter(fn ($item) => $item->iva_id && $item->iva)
+		->groupBy('iva_id')
+		->map(function ($items) {
+			$iva = $items->first()->iva;
+			$importeIva = $items->sum(function ($item) {
+				return round(($item->importe_subtotal_con_iva ?? $item->importe_subtotal) - $item->importe_subtotal, 2);
+			});
+
+			return [
+				'iva' => $iva,
+				'importe_neto' => round($items->sum('importe_subtotal'), 2),
+				'importe_iva' => round($importeIva, 2),
+				'importe_total' => round($items->sum(fn ($item) => $item->importe_subtotal_con_iva ?? $item->importe_subtotal), 2),
+			];
+		})
+		->values();
+}
+
+function comprobante_discrimina_iva(Comprobante $comprobante): bool
+{
+	return in_array($comprobante->tipoComprobante?->codigo, ['A', 'B'], true);
+}
+
+function comprobante_aplica_transparencia_fiscal(Comprobante $comprobante): bool
+{
+	return $comprobante->tipoComprobante?->codigo === 'B';
 }
 
 function afipDir():string{

@@ -7,9 +7,15 @@
     <link rel="stylesheet" href="{{ asset('assets/css/termica.css') }}">
 </head>
 <body>
+    @php
+        $desgloseIva = desglose_iva_comprobante($comprobante);
+        $discriminaIva = comprobante_discrimina_iva($comprobante);
+        $aplicaTransparenciaFiscal = comprobante_aplica_transparencia_fiscal($comprobante);
+        $avatarAbsolutePath = avatar_absolute_path();
+    @endphp
     <div class="container">
-        @if(variable_global('AVATAR'))
-        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(variable_global('AVATAR'))) }}" alt="Logo" class="logo">
+        @if($avatarAbsolutePath)
+        <img src="data:{{ mime_content_type($avatarAbsolutePath) }};base64,{{ base64_encode(file_get_contents($avatarAbsolutePath)) }}" alt="Logo" class="logo">
         @else
         <h1>{{ strtoupper(variable_global('RAZON_SOCIAL')) }}</h1>
         @endif
@@ -79,7 +85,7 @@
         <tr>
             <td>{{$item->cantidad}} x {{$item->descripcion}}</td>
             {{-- <td></td> --}}
-            <td align="right">${{pesosargentinos($item->importe_subtotal)}}</td>
+            <td align="right">${{pesosargentinos($discriminaIva ? ($item->importe_subtotal_con_iva ?? $item->importe_subtotal) : $item->importe_subtotal)}}</td>
         </tr>
         @endforeach
     </tbody>
@@ -87,9 +93,20 @@
 
 <!-- Totales -->
 <div class="total-container">
+    @if($discriminaIva)
+    <strong>Importe Neto Gravado:</strong> ${{pesosargentinos($comprobante->detalle->sum('importe_subtotal'))}}<br>
+    @foreach ($desgloseIva as $itemIva)
+    <strong>IVA {{$itemIva['iva']->descripcion}}:</strong> ${{pesosargentinos($itemIva['importe_iva'])}}<br>
+    @endforeach
+    
+    @else
     <strong>Subtotal:</strong> ${{pesosargentinos($comprobante->importe_neto)}}<br>
+    @endif
     <strong>Importe otros Tributos:</strong> ${{pesosargentinos($comprobante->importe_total_tributos)}}<br>
     <strong>Total:</strong> ${{pesosargentinos($comprobante->importe_total)}}<br>
+    @if($aplicaTransparenciaFiscal && $desgloseIva->isNotEmpty())
+    Régimen de Transparencia Fiscal al Consumidor Ley 27.743<br>
+    @endif
 </div>
 <div class="footer">
     <p><strong>CAE Nº:</strong> {{$comprobante->cae}}</p>

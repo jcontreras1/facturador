@@ -34,6 +34,7 @@ public function createFacturaB(){
     $condicionesIva = IvaReceptor::all();
     return view('comprobantes.createFacturaB', with([
         'condicionesIva' => $condicionesIva,
+        'ivas' => Iva::all(),
     ]));
 }
 public function createFacturaC(){

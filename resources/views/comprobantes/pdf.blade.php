@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="{{ public_path('assets/css/pdf.css') }}">
 </head>
 <body>
+    @php
+        $desgloseIva = desglose_iva_comprobante($comprobante);
+        $discriminaIva = comprobante_discrimina_iva($comprobante);
+        $aplicaTransparenciaFiscal = comprobante_aplica_transparencia_fiscal($comprobante);
+        $avatarAbsolutePath = avatar_absolute_path();
+    @endphp
     
     <div class="container">
         
@@ -20,8 +26,8 @@
             <tr>
                 <!-- Columna izquierda con logo o nombre -->
                 <td class="left-column">
-                    @if(variable_global('AVATAR'))
-                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(variable_global('AVATAR'))) }}" alt="Logo">
+                    @if($avatarAbsolutePath)
+                    <img src="data:{{ mime_content_type($avatarAbsolutePath) }};base64,{{ base64_encode(file_get_contents($avatarAbsolutePath)) }}" alt="Logo">
                     @else
                     <h1>{{ strtoupper(variable_global('RAZON_SOCIAL')) }}</h1>
                     @endif
@@ -102,7 +108,7 @@
                     {{-- <th>Imp. Bonif.</th> --}}
                     <th>Subtotal</th>
                     
-                    @if($comprobante->tipoComprobante->codigo == 'A')
+                    @if($discriminaIva)
                     <th>IVA</th>
                     <th>Subtotal c/IVA</th>
                     
@@ -125,10 +131,10 @@
                     {{-- <td>{{pesosargentinos($item->importe_descuento)}}</td> --}}
                     <td>{{pesosargentinos($item->importe_subtotal)}}</td>
                     
-                    @if($comprobante->tipoComprobante->codigo == 'A')
+                    @if($discriminaIva)
                     
                     <td>{{ $item->iva->descripcion }}</td>
-                    <td>{{pesosargentinos($item->importe_subtotal_con_iva)}}</td>
+                    <td>{{pesosargentinos($item->importe_subtotal_con_iva ?? $item->importe_subtotal)}}</td>
                     
                     @endif
                 </tr>
@@ -141,24 +147,21 @@
         <div class="ultra-footer">
             <div class="total-container">
 
-                @if($comprobante->tipoComprobante->codigo == 'A')
+                @if($discriminaIva)
                 <span class="total-label">Importe Neto Gravado:</span><span class="total-value"> ${{pesosargentinos($comprobante->detalle->sum('importe_subtotal'))}}</span>
                 <br>
-                @foreach ($comprobante->detalle->groupBy('iva_id') as $ivaId => $items)
-                    @php
-                        $iva = $items->first()->iva;
-                        $baseImp = $items->sum('importe_subtotal');
-                        $importeIva = $items->sum(function($item) {
-                            return $item->importe_subtotal_con_iva - $item->importe_subtotal;
-                        });
-                    @endphp
-                    <span class="total-label">IVA {{$iva->descripcion}}:</span><span class="total-value"> ${{pesosargentinos($importeIva)}}</span>
+                @foreach ($desgloseIva as $itemIva)
+                    <span class="total-label">IVA {{$itemIva['iva']->descripcion}}:</span><span class="total-value"> ${{pesosargentinos($itemIva['importe_iva'])}}</span>
                     <br>
                 @endforeach
+               
                 <span class="total-label">Importe otros Tributos:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total_tributos)}}</span>
                 <br>
                 <span class="total-label">Importe total:</span><span class="total-value"> ${{pesosargentinos($comprobante->importe_total)}}</span>
-                
+                @if($aplicaTransparenciaFiscal && $desgloseIva->isNotEmpty())
+                <br>
+                <span class="total-label"></span><span class="total-value"> Régimen de Transparencia Fiscal al Consumidor Ley 27.743</span>
+                @endif 
                 @else
 
                 {{-- Monotributo --}}
@@ -171,7 +174,7 @@
                 
                 @endif
             </div>
-            
+
             <div class="footer">
                 <table style="width: 100%;">
                     <tr>

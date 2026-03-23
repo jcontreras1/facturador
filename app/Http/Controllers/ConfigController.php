@@ -29,9 +29,14 @@ class ConfigController extends Controller
             $request->validate([
                 'avatar' => 'mimes:jpg,jpeg,png,webp,tiff,svg|required|max:2000'
             ]);
+
+            if ($oldAvatarPath = avatar_storage_relative_path($obj->valor)) {
+                Storage::disk('public')->delete($oldAvatarPath);
+            }
+
             $imageName = Str::uuid() . '.' . $request->avatar->extension();
-            $request->avatar->storeAs($imageName);            
-            $obj->update(['valor' => Storage::url($imageName)]);
+            $path = $request->file('avatar')->storeAs('avatars', $imageName, 'public');
+            $obj->update(['valor' => url('/storage/' . ltrim($path, '/'))]);
             toast('Imagen establecida', 'success')->autoClose(2000);
         }
         return back();
@@ -39,8 +44,8 @@ class ConfigController extends Controller
 
     public function unset_avatar(Request $request){
         $obj = obj_variable_global('AVATAR');
-        if(Storage::exists(str_replace(url('/storage'), '', $obj->valor))){
-            Storage::delete(str_replace(url('/storage'), '', $obj->valor));
+        if($path = avatar_storage_relative_path($obj->valor)){
+            Storage::disk('public')->delete($path);
         }
         $obj->update(['valor' => '']);
         toast('Imagen eliminada', 'success')->autoClose(2000);

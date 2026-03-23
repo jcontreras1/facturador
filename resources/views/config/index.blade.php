@@ -13,8 +13,12 @@
             <div class="col-12 col-md-3 mb-3">
                 <div class="card info h-100">
                     <div class="card-body">
-                        @if(variable_global('AVATAR') && Storage::disk('public')->exists(str_replace(url('/storage'), '', variable_global('AVATAR'))))
-                        <img class="img-fluid img-thumbnail" width="100%" src="{{variable_global('AVATAR')}}">
+                        @if($avatarPath = avatar_storage_relative_path())
+                        @if(Storage::disk('public')->exists($avatarPath))
+                        <img class="img-fluid img-thumbnail" width="100%" src="{{ avatar_public_url() }}">
+                        @else
+                        <div class="alert alert-warning">La imagen configurada no existe en el disco público.</div>
+                        @endif
                         @else
                         <div class="alert alert-warning">No hay una imagen cargada.</div>
                         @endif
