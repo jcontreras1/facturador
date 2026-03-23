@@ -88,7 +88,7 @@
           <div v-for="(linea, index) in lineas" :key="index" class="linea-detalle row mb-3">
             <div class="col-12 col-md-3">
               <label for="descripcion{{ index }}">Descripción</label>
-              <input type="text" v-model="linea.descripcion" class="form-control" @input="calcularSubtotal(index)">
+              <textarea v-model="linea.descripcion" class="form-control" rows="2" @input="calcularSubtotal(index)"></textarea>
             </div>
             <div class="col-12 col-md-1">
               <label for="cantidad{{ index }}">Cantidad</label>
@@ -116,7 +116,8 @@
               <label for="subtotal{{ index }}">Subtotal</label>
               <input type="number" v-model="linea.subtotal" class="form-control" step="0.01" readonly>
             </div>
-            <div class="col-12 col-md-1 d-flex align-items-end">
+            <div class="col-12 col-md-1 ">
+              <label class="">&nbsp; </label><br>
               <button type="button" class="btn btn-danger" @click="eliminarLinea(index)">
                 <i class="fas fa-trash-alt"></i>
               </button>
