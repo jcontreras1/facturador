@@ -92,7 +92,7 @@
             </div>
             <div class="col-12 col-md-1">
               <label for="cantidad{{ index }}">Cantidad</label>
-              <input type="number" v-model="linea.cantidad" class="form-control" @input="calcularSubtotal(index)" min="0" required>
+              <input type="number" v-model="linea.cantidad" class="form-control" @input="calcularSubtotal(index)" min="0" step="0.01" required>
             </div>
             <div class="col-12 col-md-1">
               <label for="unidadDeMedida{{ index }}">Unidad</label>
@@ -102,19 +102,19 @@
             </div>
             <div class="col-12 col-md-2">
               <label for="precioUnitario{{ index }}">Precio Unit.</label>
-              <input type="number" v-model="linea.precioUnitario" class="form-control" @input="calcularSubtotal(index)" required>
+              <input type="number" v-model="linea.precioUnitario" class="form-control" @input="calcularSubtotal(index)" min="0" step="0.01" required>
             </div>
             <div class="col-12 col-md-1">
               <label for="bonificacion{{ index }}">% Bonif.</label>
-              <input type="number" v-model="linea.bonificacion" class="form-control" @input="calcularBonificacion(index)" required>
+              <input type="number" v-model="linea.bonificacion" class="form-control" @input="calcularBonificacion(index)" min="0" max="100" step="0.01" required>
             </div>
             <div class="col-12 col-md-1">
               <label for="importeBonificado{{ index }}">$ Bonif.</label>
-              <input type="number" v-model="linea.importeBonificado" class="form-control" readonly>
+              <input type="number" v-model="linea.importeBonificado" class="form-control" step="0.01" readonly>
             </div>
             <div class="col-12 col-md-2">
               <label for="subtotal{{ index }}">Subtotal</label>
-              <input type="number" v-model="linea.subtotal" class="form-control" readonly>
+              <input type="number" v-model="linea.subtotal" class="form-control" step="0.01" readonly>
             </div>
             <div class="col-12 col-md-1 d-flex align-items-end">
               <button type="button" class="btn btn-danger" @click="eliminarLinea(index)">
@@ -166,10 +166,11 @@ const form = reactive({
 const lineas = ref([])
 const unidadesDeMedida = ['unidad', 'metros', 'kilos', 'litros']
 const isLoading = ref(false)
+const roundAmount = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100
 
 // Propiedad computada para el importe total
 const importeTotal = computed(() => {
-  return lineas.value.reduce((acc, linea) => acc + linea.subtotal, 0).toFixed(2)
+  return roundAmount(lineas.value.reduce((acc, linea) => acc + Number(linea.subtotal || 0), 0)).toFixed(2)
 })
 
 const importeTotalFormatoArgentino = computed(() => {
@@ -233,13 +234,13 @@ const onDocumentoFocusOut = async () => {
 
 const calcularSubtotal = (index) => {
   const linea = lineas.value[index]
-  linea.subtotal = (linea.precioUnitario * linea.cantidad) - linea.importeBonificado
+  linea.subtotal = roundAmount((Number(linea.precioUnitario) * Number(linea.cantidad)) - Number(linea.importeBonificado))
   lineas.value[index] = { ...linea }
 }
 
 const calcularBonificacion = (index) => {
   const linea = lineas.value[index]
-  linea.importeBonificado = (linea.precioUnitario * linea.cantidad) * (linea.bonificacion / 100)
+  linea.importeBonificado = roundAmount((Number(linea.precioUnitario) * Number(linea.cantidad)) * (Number(linea.bonificacion) / 100))
   calcularSubtotal(index)
 }
 

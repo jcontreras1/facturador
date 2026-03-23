@@ -62,11 +62,11 @@
                         <div class="col-12 col-md-6">
                             <div class="input-group mb-3">
                                 <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" value="{{old('importe_total')}}" name="importe_total" id="importeTotal" class="form-control" placeholder="Importe a facturar" required>
+                                <input type="number" step="0.01" min="0.01" value="{{old('importe_total')}}" name="importe_total" id="importeTotal" class="form-control" placeholder="Importe a facturar" required>
                             </div>
                             <div class="input-group mb-3">
                                 <span class="input-group-text">Tope de Facturación</span>
-                                <input type="number" step="0.01" value="{{old('tope_facturacion')}}" name="tope_facturacion" id="topeFacturacionInput" class="form-control" placeholder="Tope de Facturación">
+                                <input type="number" step="0.01" min="0.01" value="{{old('tope_facturacion')}}" name="tope_facturacion" id="topeFacturacionInput" class="form-control" placeholder="Tope de Facturación">
                             </div>
                             <div class="input-group">
                                 <span class="input-group-text">Cant. Comprobantes</span>

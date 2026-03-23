@@ -34,7 +34,7 @@
                         
                         <div class="mb-1">
                             <label for="cantidad" class="form-label">Cantidad <span class="text-danger">*</span></label>
-                            <input type="number" value="1" class="form-control" id="cantidad" name="cantidad" required>
+                            <input type="number" value="1" step="0.01" min="0.01" class="form-control" id="cantidad" name="cantidad" required>
                         </div>
                         @if(!esMonotributista())
                         <div class="mb-1">
@@ -49,14 +49,14 @@
                         
                         <div class="mb-1">
                             <label for="importe_neto" class="form-label">Importe Neto</label>
-                            <input type="number" class="form-control" id="importe_neto" name="importe_unitario_neto">
+                            <input type="number" step="0.01" min="0" class="form-control" id="importe_neto" name="importe_unitario_neto">
                         </div>
                         @endif
                         <div class="mb-1">
                             <label for="importe_total" class="form-label">Importe Unitario</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="importe_total" step="0.01" name="importe_unitario_subtotal" required>
+                                <input type="number" class="form-control" id="importe_total" step="0.01" min="0" name="importe_unitario_subtotal" required>
                             </div>
                         </div>
                         <hr>

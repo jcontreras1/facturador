@@ -9,6 +9,12 @@ class ServicioCliente extends Model
 {
     protected $table = 'servicio_mensual_cliente';
 
+    protected $casts = [
+        'cantidad' => 'float',
+        'importe_neto' => 'float',
+        'importe_total' => 'float',
+    ];
+
     protected $fillable = [
         'cliente_id',
         'item_id',
