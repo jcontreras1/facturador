@@ -71,7 +71,9 @@ function avatar_absolute_path(?string $value = null): ?string
 function desglose_iva_comprobante(Comprobante $comprobante)
 {
 	return $comprobante->detalle
-		->filter(fn ($item) => $item->iva_id && $item->iva)
+		->filter(function ($item) {
+			return $item->iva_id && $item->iva;
+		})
 		->groupBy('iva_id')
 		->map(function ($items) {
 			$iva = $items->first()->iva;
@@ -83,7 +85,9 @@ function desglose_iva_comprobante(Comprobante $comprobante)
 				'iva' => $iva,
 				'importe_neto' => round($items->sum('importe_subtotal'), 2),
 				'importe_iva' => round($importeIva, 2),
-				'importe_total' => round($items->sum(fn ($item) => $item->importe_subtotal_con_iva ?? $item->importe_subtotal), 2),
+				'importe_total' => round($items->sum(function ($item) {
+					return $item->importe_subtotal_con_iva ?? $item->importe_subtotal;
+				}), 2),
 			];
 		})
 		->values();
@@ -144,38 +148,55 @@ function transformarArreglos($request){
 	return $lineas;
 }
 function infoQRFactura(Comprobante $comprobante){
-	// Datos de la factura
-	$fecha = $comprobante->created_at->format('Y-m-d');
-	$cuit = 0;//$comprobante->cliente->cuit;
-	$ptoVta = $comprobante->pto_venta;
-	$tipoCmp = $comprobante->tipoComprobante->codigo_afip; // Función para determinar el tipo de comprobante
-	$nroCmp = $comprobante->nro_factura;
-	$importe = $comprobante->total;
-	$moneda = 'PES'; // Siempre será "PES" (Pesos)
-	$ctz = 1; // Cotización siempre es 1 (para PES)
-	$tipoDocRec = 0;//80; // Para tipo de documento del receptor (puede variar según el cliente)
-	$nroDocRec = 0;//$comprobante->cliente->nro_documento; // Número de documento del receptor (si corresponde)
-	$tipoCodAut = 'A'; // Tipo de código de autorización (autorizado)
-	$codAut = $comprobante->cae; // Código de autorización (CAE)
-	
+	// Fecha de emision fiscal (fallback: created_at)
+	$fecha = $comprobante->fecha_emision
+		? date('Y-m-d', strtotime($comprobante->fecha_emision))
+		: $comprobante->created_at->format('Y-m-d');
+
+	// CUIT emisor configurado en parametros del sistema
+	$cuitEmisor = preg_replace('/\D/', '', (string) variable_global('CUIT_EMPRESA'));
+	$cuit = $cuitEmisor !== '' ? (int) $cuitEmisor : 0;
+
+	$ptoVta = (int) ($comprobante->punto_venta ?? 0);
+	$tipoCmp = (int) ($comprobante->tipoComprobante->codigo_afip ?? 0);
+	$nroCmp = (int) ($comprobante->nro_comprobante ?? 0);
+
+	$importe = round((float) ($comprobante->importe_total ?? 0), 2);
+	$moneda = 'PES';
+	$ctz = 1;
+
+	$tipoDocRec = (int) ($comprobante->tipo_documento_id ?? 0);
+	$nroDocRecRaw = preg_replace('/\D/', '', (string) ($comprobante->cuit_dni ?? ''));
+	$nroDocRec = $nroDocRecRaw !== '' ? (int) $nroDocRecRaw : 0;
+
+	// Para CAE corresponde "E" ("A" se usa para CAEA)
+	$tipoCodAut = 'E';
+	$codAutRaw = preg_replace('/\D/', '', (string) ($comprobante->cae ?? ''));
+	$codAut = $codAutRaw !== '' ? (int) $codAutRaw : 0;
+
 	$jsonData = [
 		"ver" => 1,
 		"fecha" => $fecha,
-		"cuit" => (int) $cuit,
-		"ptoVta" => (int) $ptoVta,
-		"tipoCmp" => (int) $tipoCmp,
-		"nroCmp" => (int) $nroCmp,
-		"importe" => (float) $importe,
+		"cuit" => $cuit,
+		"ptoVta" => $ptoVta,
+		"tipoCmp" => $tipoCmp,
+		"nroCmp" => $nroCmp,
+		"importe" => $importe,
 		"moneda" => $moneda,
-		"ctz" => (int) $ctz,
-		"tipoDocRec" => (int) $tipoDocRec,
-		"nroDocRec" => (int) $nroDocRec,
+		"ctz" => $ctz,
 		"tipoCodAut" => $tipoCodAut,
-		"codAut" => (int) $codAut
+		"codAut" => $codAut,
 	];
-	$jsonString = json_encode($jsonData);
+
+	if ($tipoDocRec > 0) {
+		$jsonData["tipoDocRec"] = $tipoDocRec;
+		$jsonData["nroDocRec"] = $nroDocRec;
+	}
+
+	$jsonString = json_encode($jsonData, JSON_UNESCAPED_SLASHES);
 	$base64Json = base64_encode($jsonString);
-	return "https://www.afip.gob.ar/fe/qr/?p=" . $base64Json;
+
+	return "https://www.arca.gob.ar/fe/qr/?p=" . $base64Json;
 }
 
 function imgBase64QRFactura(Comprobante $comprobante){
