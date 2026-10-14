@@ -92,6 +92,12 @@ body {
     text-align: left !important;
 }
 
+.item-description-content {
+    white-space: pre-wrap;
+    tab-size: 4;
+    word-break: break-word;
+}
+
 /* Estilo generico bordeado */
 .bordered-container {
     box-sizing: border-box !important;

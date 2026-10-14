@@ -118,12 +118,7 @@
             <tbody>
                 @foreach($comprobante->detalle as $item)  
                 <tr>
-                    <td class="item-description">
-                        @if($item->codigo)
-                        [{{$item->codigo}}]
-                        @endif
-                        {{$item->descripcion}}
-                    </td>
+                    <td class="item-description">@if($item->codigo)[{{$item->codigo}}] @endif<span class="item-description-content">{{$item->descripcion}}</span></td>
                     <td>{{$item->cantidad}}</td>
                     <td>{{$item->unidad_medida}}</td>
                     <td>{{pesosargentinos($item->importe_unitario)}}</td>

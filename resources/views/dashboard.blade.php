@@ -5,8 +5,15 @@
         @endguest
         @auth
         @php
-        $facturasQuery = App\Models\Arca\Comprobante::where('tipo_comprobante_id', 5)->whereMonth('created_at', now()->month);
-        $notasCreditoQuery = App\Models\Arca\Comprobante::where('tipo_comprobante_id', 6)->whereMonth('created_at', now()->month);
+        $periodoActual = now();
+
+        $facturasQuery = App\Models\Arca\Comprobante::where('tipo_comprobante_id', 5)
+            ->whereYear('fecha_emision', $periodoActual->year)
+            ->whereMonth('fecha_emision', $periodoActual->month);
+
+        $notasCreditoQuery = App\Models\Arca\Comprobante::where('tipo_comprobante_id', 6)
+            ->whereYear('fecha_emision', $periodoActual->year)
+            ->whereMonth('fecha_emision', $periodoActual->month);
 
         $facturas = $facturasQuery->count();
         $notasCredito = $notasCreditoQuery->count();
