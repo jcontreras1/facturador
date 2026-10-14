@@ -32,7 +32,7 @@
                         <label for="aumento" class="form-label">Aumentar porcentaje</label>
                         <div class="input-group">
                             <span class="input-group-text">%</span>
-                            <input type="number" class="form-control" id="aumento" name="aumento" value="{{ $item->aumento }}">
+                            <input type="number" step="0.01" class="form-control" id="aumento" name="aumento" value="{{ $item->aumento }}">
                         </div>
                     </div>
                 </div>
@@ -47,21 +47,33 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var precioUnitarioInput = document.getElementById('precio_unitario');
-            var originalPrecioUnitario = parseFloat(precioUnitarioInput.getAttribute('data-original-value')) || parseFloat(precioUnitarioInput.value);
-            
-            if (!precioUnitarioInput.getAttribute('data-original-value')) {
-            precioUnitarioInput.setAttribute('data-original-value', originalPrecioUnitario);
-            }
+            var aumentoInput = document.getElementById('aumento');
+            var originalPrecioUnitario = parseFloat(precioUnitarioInput.getAttribute('data-original')) || parseFloat(precioUnitarioInput.value) || 0;
+            var roundToTwo = function(value) {
+                return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+            };
 
-            document.getElementById('aumento').addEventListener('input', function() {
-            var aumento = parseFloat(this.value);
-            
-            if (isNaN(aumento)) {
-                precioUnitarioInput.value = originalPrecioUnitario.toFixed(2);
-            } else {
-                var newPrecioUnitario = originalPrecioUnitario + (originalPrecioUnitario * (aumento / 100));
+            aumentoInput.addEventListener('input', function() {
+                var rawValue = String(this.value).replace(',', '.');
+                var aumento = parseFloat(rawValue);
+
+                if (rawValue.trim() === '' || isNaN(aumento)) {
+                    precioUnitarioInput.value = roundToTwo(originalPrecioUnitario).toFixed(2);
+                    return;
+                }
+
+                var aumentoRedondeado = roundToTwo(aumento);
+                var newPrecioUnitario = roundToTwo(originalPrecioUnitario * (1 + (aumentoRedondeado / 100)));
                 precioUnitarioInput.value = newPrecioUnitario.toFixed(2);
-            }
+            });
+
+            aumentoInput.addEventListener('blur', function() {
+                var rawValue = String(this.value).replace(',', '.');
+                var aumento = parseFloat(rawValue);
+
+                if (!isNaN(aumento)) {
+                    this.value = roundToTwo(aumento).toFixed(2);
+                }
             });
         });
         

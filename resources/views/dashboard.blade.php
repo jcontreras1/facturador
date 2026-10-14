@@ -72,7 +72,7 @@
                     <div class="card-body">
                         <div class="text-uppercase small opacity-75 mb-2">Facturación bruta</div>
                         <h5 class="card-title mb-3">Total facturado</h5>
-                        <div class="display-5 text-end toggle-value" data-value="${{ $totalFacturado }}">***</div>
+                        <div class="display-5 text-end toggle-value fit-card-value" data-max-size="48" data-min-size="20" data-value="${{ $totalFacturado }}">***</div>
                         <div class="mt-3 small opacity-75">Suma total de facturas emitidas durante el mes.</div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                     <div class="card-body">
                         <div class="text-uppercase small opacity-75 mb-2">Descuentos emitidos</div>
                         <h5 class="card-title mb-3">Total en notas de crédito</h5>
-                        <div class="display-5 text-end toggle-value" data-value="${{ $totalNotasCredito }}">***</div>
+                        <div class="display-5 text-end toggle-value fit-card-value" data-max-size="48" data-min-size="20" data-value="${{ $totalNotasCredito }}">***</div>
                         <div class="mt-3 small opacity-75">Este importe se descuenta de la base sobre la que calculás IIBB.</div>
                     </div>
                 </div>
@@ -94,7 +94,7 @@
                     <div class="card-body">
                         <div class="text-uppercase small opacity-75 mb-2">Base neta mensual</div>
                         <h5 class="card-title mb-3">Base imponible IIBB</h5>
-                        <div class="display-5 text-end toggle-value" data-value="${{ $baseImponibleIibb }}">***</div>
+                        <div class="display-5 text-end toggle-value fit-card-value" data-max-size="48" data-min-size="20" data-value="${{ $baseImponibleIibb }}">***</div>
                         <div class="mt-3 small opacity-75">Fórmula: facturado menos notas de crédito del mismo período.</div>
                         <div class="mt-3 small opacity-75 fw-bold">Aclaración: no está contemplado el tope mínimo por actividad.</div>
                     </div>
@@ -145,11 +145,43 @@
         </div>
         @endauth
     </div>
+
+    <style>
+        .fit-card-value {
+            display: block;
+            white-space: nowrap;
+            line-height: 1.05;
+            letter-spacing: -0.01em;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const toggleButtons = document.querySelectorAll("#toggleVisibility");
             const toggleValues = document.querySelectorAll(".toggle-value");
+            const fitCardValues = document.querySelectorAll(".fit-card-value");
+
+            function fitTextToWidth(el) {
+                const maxSize = parseFloat(el.dataset.maxSize || '48');
+                const minSize = parseFloat(el.dataset.minSize || '20');
+
+                if (!el.clientWidth) {
+                    return;
+                }
+
+                let fontSize = maxSize;
+                el.style.fontSize = `${fontSize}px`;
+
+                while (el.scrollWidth > el.clientWidth && fontSize > minSize) {
+                    fontSize -= 0.5;
+                    el.style.fontSize = `${fontSize}px`;
+                }
+            }
+
+            function fitAllCardValues() {
+                fitCardValues.forEach((el) => fitTextToWidth(el));
+            }
             
             function updateVisibility() {
                 const showValues = localStorage.getItem("showValues") === "true";
@@ -165,6 +197,8 @@
                 toggleValues.forEach(el => {
                     el.textContent = showValues ? el.dataset.value : "***";
                 });
+
+                requestAnimationFrame(fitAllCardValues);
             }
             
             toggleButtons.forEach(btn => {
@@ -174,6 +208,8 @@
                     updateVisibility();
                 });
             });
+
+            window.addEventListener("resize", fitAllCardValues);
             
             updateVisibility();
         });
