@@ -1,282 +1,417 @@
 <x-app-layout>
-    <div class="container">
-        <div class="d-flex justify-content-between">
-            <h3 class="text-lg font-semibold mb-6">Configuraciones</h3>
+    @php
+        $variablesByKey = $variables->keyBy('clave');
+
+        $getValue = function (string $key) use ($variablesByKey) {
+            return old('config.'.$key, $variablesByKey->get($key)?->valor ?? '');
+        };
+
+        $requiredBillingFields = [
+            'CUIT_EMPRESA' => [
+                'label' => 'CUIT/CUIL',
+                'description' => 'Obligatorio para la firma digital de facturas.',
+                'type' => 'text',
+            ],
+            'RAZON_SOCIAL' => [
+                'label' => 'Razón Social',
+                'description' => 'Tal cual figura en ARCA/AFIP.',
+                'type' => 'text',
+            ],
+            'DOMICILIO_FISCAL' => [
+                'label' => 'Domicilio Fiscal',
+                'description' => 'Usado en comprobantes y validaciones fiscales.',
+                'type' => 'text',
+            ],
+            'FECHA_INICIO_ACTIVIDADES' => [
+                'label' => 'Fecha de inicio de actividades',
+                'description' => 'Si no se dispone del dato, solicitarlo al contador/a.',
+                'type' => 'date',
+            ],
+            'CONDICION_IVA' => [
+                'label' => 'Condición frente al IVA',
+                'description' => 'Se utiliza para determinar reglas de facturación.',
+                'type' => 'select',
+            ],
+            'PUNTO_VENTA' => [
+                'label' => 'Punto de Venta',
+                'description' => 'Sin este valor no se puede facturar.',
+                'type' => 'text',
+            ],
+        ];
+
+        $optionalFields = [
+            'TIPO_IMPRESORA' => [
+                'label' => 'Tipo de Impresora',
+                'description' => 'Permite definir la impresión por defecto para comprobantes.',
+                'type' => 'select',
+            ],
+            'TOPE_FACTURACION_CONSUMIDOR_FINAL' => [
+                'label' => 'Tope facturación consumidor final',
+                'description' => 'Valor de referencia para controles internos.',
+                'type' => 'text',
+            ],
+        ];
+
+        $condicionIvaOptions = [
+            'IVA Responsable Inscripto',
+            'IVA Responsable No Inscripto',
+            'IVA Exento',
+            'IVA No Responsable',
+            'IVA Sujeto Exento',
+            'Consumidor Final',
+            'Responsable Monotributo',
+            'Sujeto No Categorizado',
+            'Proveedor del Exterior',
+            'Cliente del Exterior',
+            'IVA Liberado – Ley Nº 19.640',
+        ];
+
+        $impresoraOptions = ['AMBAS', 'TERMICA', 'A4'];
+
+        $isMissing = function (string $key) use ($getValue): bool {
+            return trim((string) $getValue($key)) === '';
+        };
+
+        $missingRequiredFields = collect($requiredBillingFields)->filter(fn ($field, $key) => $isMissing($key));
+
+        $afipKeyMissing = trim((string) variable_global('AFIP_KEY')) === '';
+        $afipCertificateMissing = trim((string) variable_global('AFIP_CERTIFICADO')) === '';
+        $afipCertificateExpired = variable_global('VENCIMIENTO_CERTIFICADO')
+            && Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->isPast();
+
+        $missingSystemItems = collect([
+            ['label' => 'Clave privada AFIP', 'missing' => $afipKeyMissing],
+            ['label' => 'Certificado AFIP', 'missing' => $afipCertificateMissing],
+        ])->filter(fn ($item) => $item['missing']);
+
+        $hasBlockingWarnings = $missingRequiredFields->isNotEmpty() || $missingSystemItems->isNotEmpty();
+    @endphp
+
+    <div class="container pb-5">
+        <x-title title="Configuraciones" urlBack="{{ route('home') }}" />
+
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="alert {{ $hasBlockingWarnings ? 'alert-warning' : 'alert-success' }} d-flex align-items-start gap-2 mb-4">
+            <i class="fas {{ $hasBlockingWarnings ? 'fa-exclamation-triangle' : 'fa-check-circle' }} mt-1"></i>
             <div>
-                <a href="{{route('home')}}" class="btn btn-primary"><i class="fas fa-chevron-left"></i></a>
+                @if ($hasBlockingWarnings)
+                    <div class="fw-semibold">
+                        Faltan datos para facturar correctamente.
+                    </div>
+                    <div class="small">
+                        Completá estos campos para habilitar una facturación sin bloqueos:
+                    </div>
+                    <ul class="mb-0 mt-1">
+                        @foreach ($missingRequiredFields as $field)
+                            <li>{{ $field['label'] }}</li>
+                        @endforeach
+                        @foreach ($missingSystemItems as $item)
+                            <li>{{ $item['label'] }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <div class="fw-semibold">Configuración lista para facturar.</div>
+                    <div class="small">No se detectaron campos críticos pendientes.</div>
+                @endif
             </div>
         </div>
-        <hr>
-        <div class="row">
-            
-            {{-- Avatar de la Empresa --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
+
+        <form id="configBulkForm" method="POST" action="{{ route('config.bulkUpdate') }}" class="d-flex flex-column gap-3">
+            @csrf
+            @method('PATCH')
+
+            @foreach ($requiredBillingFields as $key => $field)
+                @php
+                    $fieldValue = (string) $getValue($key);
+                    $missing = $isMissing($key);
+                @endphp
+                <div class="card shadow-sm" data-config-card="{{ $key }}" data-config-label="{{ $field['label'] }}">
                     <div class="card-body">
-                        @if($avatarPath = avatar_storage_relative_path())
-                        @if(Storage::disk('public')->exists($avatarPath))
-                        <img class="img-fluid img-thumbnail" width="100%" src="{{ avatar_public_url() }}">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">{{ $field['label'] }}</h5>
+                                <p class="text-muted mb-0">{{ $field['description'] }}</p>
+                            </div>
+                            <span class="badge text-bg-warning config-warning-badge {{ $missing ? '' : 'd-none' }}">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Obligatorio para facturar
+                            </span>
+                        </div>
+
+                        @if ($field['type'] === 'date')
+                            <input
+                                class="form-control @error('config.'.$key) is-invalid @enderror"
+                                type="date"
+                                name="config[{{ $key }}]"
+                                value="{{ $fieldValue }}"
+                            >
+                        @elseif ($field['type'] === 'select')
+                            <select class="form-select @error('config.'.$key) is-invalid @enderror" name="config[{{ $key }}]">
+                                <option value="">Seleccione una opción</option>
+                                @foreach ($condicionIvaOptions as $option)
+                                    <option value="{{ $option }}" {{ $fieldValue === $option ? 'selected' : '' }}>{{ $option }}</option>
+                                @endforeach
+                            </select>
                         @else
-                        <div class="alert alert-warning">La imagen configurada no existe en el disco público.</div>
+                            <input
+                                class="form-control @error('config.'.$key) is-invalid @enderror"
+                                type="text"
+                                name="config[{{ $key }}]"
+                                value="{{ $fieldValue }}"
+                            >
                         @endif
+
+                        @error('config.'.$key)
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+
+                        <small class="text-warning config-warning-text {{ $missing ? '' : 'd-none' }}">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Si no completás este campo no vas a poder facturar correctamente.
+                        </small>
+                    </div>
+                </div>
+            @endforeach
+
+            @foreach ($optionalFields as $key => $field)
+                @php
+                    $fieldValue = (string) $getValue($key);
+                @endphp
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title mb-1">{{ $field['label'] }}</h5>
+                        <p class="text-muted mb-3">{{ $field['description'] }}</p>
+
+                        @if ($field['type'] === 'select')
+                            <select class="form-select @error('config.'.$key) is-invalid @enderror" name="config[{{ $key }}]">
+                                <option value="">Seleccione una opción</option>
+                                @foreach ($impresoraOptions as $option)
+                                    <option value="{{ $option }}" {{ $fieldValue === $option ? 'selected' : '' }}>{{ $option }}</option>
+                                @endforeach
+                            </select>
                         @else
-                        <div class="alert alert-warning">No hay una imagen cargada.</div>
+                            <input
+                                class="form-control @error('config.'.$key) is-invalid @enderror"
+                                type="text"
+                                name="config[{{ $key }}]"
+                                value="{{ $fieldValue }}"
+                            >
                         @endif
-                        <div class="py-1"></div>
-                        <h6 class="card-title">Imagen para el membrete de los posibles documentos.</h6>
-                        <div class="py-1"></div>
-                        
-                        <form method="POST" action="{{route('config.avatar')}}" enctype="multipart/form-data">
+
+                        @error('config.'.$key)
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            @endforeach
+        </form>
+
+        <hr class="my-4">
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Imagen para membrete</h5>
+                        <p class="text-muted">Se utiliza en documentos exportados.</p>
+
+                        @if ($avatarPath = avatar_storage_relative_path())
+                            @if (Storage::disk('public')->exists($avatarPath))
+                                <img class="img-fluid img-thumbnail mb-3 config-avatar-preview" src="{{ avatar_public_url() }}">
+                            @else
+                                <div class="alert alert-warning">La imagen configurada no existe en el disco público.</div>
+                            @endif
+                        @else
+                            <div class="alert alert-warning">No hay una imagen cargada.</div>
+                        @endif
+
+                        <form method="POST" action="{{ route('config.avatar') }}" enctype="multipart/form-data">
                             @csrf
-                            <input type="file" class="form-control form-control-sm" name="avatar" accept="image/*" required />
-                            <hr>
-                            <button class="btn btn-success">Guardar</button>
-                            @if(variable_global('AVATAR'))
-                            <button onclick="eliminarAvatar()" class="btn btn-danger" type="button" title="Remover imagen"><i class="fas fa-trash"></i></button>
+                            <input type="file" class="form-control mb-3" name="avatar" accept="image/*" required />
+                            <button class="btn btn-success">Guardar imagen</button>
+                            @if (variable_global('AVATAR'))
+                                <button onclick="eliminarAvatar()" class="btn btn-outline-danger" type="button" title="Remover imagen">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             @endif
                         </form>
                     </div>
                 </div>
             </div>
-            
-            {{-- Cuit --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        <div class="display-3">
-                            <i class="far fa-building text-muted"></i>
-                        </div>
-                        <h5 class="card-title">CUIT/CUIL</h5>
-                        <small>Obligatorio para la firma digital de facturas</small>
-                        <hr>
-                        <form method="post" action="{{route('config.update', obj_variable_global('CUIT_EMPRESA')->id)}}" >
-                            @csrf @method('patch')
-                            <input class="form form-control mb-3" name="valor" value="{{variable_global('CUIT_EMPRESA')}}">
-                            <button class="btn btn-success">Guardar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            {{-- Nombre empresa --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        <div class="display-3">
-                            <i class="far fa-building text-muted"></i>
-                        </div>
-                        <h5 class="card-title">Razón Social</h5>
-                        <small>Tal cual está presentada en afip</small>
-                        <hr>
-                        
-                        <form method="post" action="{{route('config.update', obj_variable_global('RAZON_SOCIAL')->id)}}" >
-                            @csrf @method('patch')
-                            <input class="form form-control mb-3" name="valor" value="{{variable_global('RAZON_SOCIAL')}}">
-                            <button class="btn btn-success">Guardar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
 
-            {{-- Domicilio Fiscal --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
+            <div class="col-12 col-lg-4">
+                <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="display-3">
-                            <i class="far fa-building text-muted"></i>
-                        </div>
-                        <h5 class="card-title">Domicilio Fiscal</h5>
-                        {{-- <small>Tal cual está presentada en afip</small> --}}
-                        <hr>
-                        
-                        <form method="post" action="{{route('config.update', obj_variable_global('DOMICILIO_FISCAL')->id)}}" >
-                            @csrf @method('patch')
-                            <input class="form form-control mb-3" name="valor" value="{{variable_global('DOMICILIO_FISCAL')}}">
-                            <button class="btn btn-success">Guardar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+                        <h5 class="card-title">
+                            Clave privada AFIP
+                            @if ($afipKeyMissing)
+                                <i class="fas fa-exclamation-triangle text-warning ms-1" title="Falta la clave privada"></i>
+                            @endif
+                        </h5>
+                        <p class="text-muted">Se utiliza para firmar certificados y comprobantes.</p>
 
-            {{-- Fecha inicio actividades --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        <div class="display-3">
-                            <i class="far fa-building text-muted"></i>
-                        </div>
-                        <h5 class="card-title">Fecha de inicio de actividades</h5>
-                        <small>Si no se dispone del dato, solicitar al contador/contadora</small>
-                        <hr>
-                        
-                        <form method="post" action="{{route('config.update', obj_variable_global('FECHA_INICIO_ACTIVIDADES')->id)}}" >
-                            @csrf @method('patch')
-                            <input class="form form-control mb-3" type="date" name="valor" value="{{variable_global('FECHA_INICIO_ACTIVIDADES')}}">
-                            <button class="btn btn-success">Guardar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-                      {{-- Condicion frente al IVA --}}
-                      <div class="col-12 col-md-3 mb-3">
-                        <div class="card info h-100">
-                            <div class="card-body">
-                                <div class="display-3">
-                                    <i class="far fa-building text-muted"></i>
-                                </div>
-                                <h5 class="card-title">Condición frente al IVA</h5>
-                                <small></small>
-                                <hr>
-                                <form method="post" action="{{route('config.update', obj_variable_global('CONDICION_IVA')->id)}}" >
-                                    @csrf @method('patch')
-                                    <select class="form-control form-select mb-3" name="valor">
-                                        {{-- Sin valor --}}
-                                        <option value="">Seleccione una opción</option>
-                                        {{-- Opciones --}}
-                                        <option value="IVA Responsable Inscripto" {{variable_global('CONDICION_IVA') == 'IVA Responsable Inscripto' ? 'selected' : ''}}>IVA Responsable Inscripto</option>
-                                        <option value="IVA Responsable No Inscripto" {{variable_global('CONDICION_IVA') == 'IVA Responsable No Inscripto' ? 'selected' : ''}}>IVA Responsable No Inscripto</option>
-                                        <option value="IVA Exento" {{variable_global('CONDICION_IVA') == 'IVA Exento' ? 'selected' : ''}}>IVA Exento</option>
-                                        <option value="IVA No Responsable" {{variable_global('CONDICION_IVA') == 'IVA No Responsable' ? 'selected' : ''}}>IVA No Responsable</option>
-                                        <option value="IVA Sujeto Exento" {{variable_global('CONDICION_IVA') == 'IVA Sujeto Exento' ? 'selected' : ''}}>IVA Sujeto Exento</option>
-                                        <option value="Consumidor Final" {{variable_global('CONDICION_IVA') == 'Consumidor Final' ? 'selected' : ''}}>Consumidor Final</option>
-                                        <option value="Responsable Monotributo" {{variable_global('CONDICION_IVA') == 'Responsable Monotributo' ? 'selected' : ''}}>Responsable Monotributo</option>
-                                        <option value="Sujeto No Categorizado" {{variable_global('CONDICION_IVA') == 'Sujeto No Categorizado' ? 'selected' : ''}}>Sujeto No Categorizado</option>
-                                        <option value="Proveedor del Exterior" {{variable_global('CONDICION_IVA') == 'Proveedor del Exterior' ? 'selected' : ''}}>Proveedor del Exterior</option>
-                                        <option value="Cliente del Exterior" {{variable_global('CONDICION_IVA') == 'Cliente del Exterior' ? 'selected' : ''}}>Cliente del Exterior</option>
-                                        <option value="IVA Liberado – Ley Nº 19.640" {{variable_global('CONDICION_IVA') == 'IVA Liberado – Ley Nº 19.640' ? 'selected' : ''}}>IVA Liberado – Ley Nº 19
-                                    </select>
-                                    <button class="btn btn-success">Guardar</button>
-                                </form>
+                        @if (! variable_global('AFIP_KEY'))
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Todavía no existe una clave privada.
                             </div>
-                        </div>
+                            <form method="POST" action="{{ route('afip.makeKey') }}">
+                                @csrf
+                                <button class="btn btn-warning">Generar clave <i class="fas fa-key"></i></button>
+                            </form>
+                        @else
+                            <div class="alert alert-success mb-3">
+                                <i class="fas fa-check-circle me-1"></i>
+                                La clave privada ya está generada.
+                            </div>
+                        @endif
+
+                        <a href="{{ route('afip.makeCSR') }}" class="btn btn-outline-primary">
+                            Descargar solicitud CSR
+                        </a>
                     </div>
-            
-            {{-- Arca --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+                <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <div class="display-3">
-                            <img src="{{asset('img/arca.png')}}" width="" class="bg-secondary rounded-1 p-2 mb-2" />
-                        </div>
-                        <h5 class="card-title">Clave privada para firma de certificados y facturas</h5>
-                        <hr>
-                        @if(!variable_global('AFIP_KEY'))
-                        <form method="post" action="{{route('afip.makeKey')}}" >
+                        <h5 class="card-title">
+                            Certificado AFIP
+                            @if ($afipCertificateMissing || $afipCertificateExpired)
+                                <i class="fas fa-exclamation-triangle text-warning ms-1" title="Certificado pendiente o vencido"></i>
+                            @endif
+                        </h5>
+                        <p class="text-muted">Certificado emitido por ARCA/AFIP para la facturación electrónica.</p>
+
+                        @if (variable_global('AFIP_CERTIFICADO'))
+                            @if ($afipCertificateExpired)
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <strong>Certificado vencido.</strong>
+                                    Venció {{ Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->diffForHumans() }}.
+                                </div>
+                            @else
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Certificado cargado.
+                                    Vence el <strong>{{ date('d/m/Y', strtotime(variable_global('VENCIMIENTO_CERTIFICADO'))) }}</strong>
+                                    <small>({{ Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->diffForHumans() }})</small>
+                                </div>
+                            @endif
+                        @else
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                No hay certificado cargado.
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('config.newCert') }}" enctype="multipart/form-data">
                             @csrf
-                            <button class="btn btn-warning">Generar clave <i class="fas fa-key"></i></button>
-                        </form>
-                        @else
-                        <div class="alert alert-info"><i class="fas fa-info-circle"></i> Ya existe una clave generada. No es necesario generar una nueva.</div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            
-            {{-- Arca Descargar solicitud --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        <div class="display-3">
-                            <i class="fas fa-file-contract text-muted"></i>
-                        </div>
-                        <h5 class="card-title">Descargar archivo de solicitud de certificado (Para presentar en ARCA)</h5>
-                        <hr>
-                        <a href="{{route('afip.makeCSR')}}" class="btn btn-primary">Descargar Solicitud CSR</a>
-                    </div>
-                </div>
-            </div>
-            
-            {{-- Certificado para facturación de la empresa --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        @if(variable_global('AFIP_CERTIFICADO'))
-                        @if(variable_global('VENCIMIENTO_CERTIFICADO') && Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->isPast())
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Certificado vencido</strong>
-                            <br>
-                            Vencido {{ Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->diffForHumans() }}. Descargue un nuevo CSR y preséntelo en ARCA para obtener un nuevo certificado. O póngase en contacto con un contador para continuar con la gestión.
-                        </div>
-                        @else
-                        <div class="alert alert-success">
-                            <i class="fas fa-check"></i>
-                            Certificado cargado. 
-                            
-                            Vencimiento: <strong>{{ date('d/m/Y', strtotime(variable_global('VENCIMIENTO_CERTIFICADO'))) }}</strong> <em><small>({{ Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->diffForHumans() }})</small></em>
-                        </div>
-                        @endif
-                        @else
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            No hay certificado cargado aún
-                        </div>
-                        @endif
-                        <div class="py-1"></div>
-                        <h6 class="card-title">Certificado emitido por Afip (usualmente entregado por contador)</h6>
-                        <div class="py-1"></div>
-                        
-                        <form method="POST" action="{{route('config.newCert')}}" enctype="multipart/form-data">
-                            @csrf
-                            <input type="file" class="form-control form-control-sm mb-2" required name="cert" value="{{ old('cert') }}">
-                            <input type="date" class="form-control form-control-sm" name="vencimiento" value="{{variable_global('VENCIMIENTO_CERTIFICADO') }}" required />
-                            <hr>
-                            <button class="btn btn-success">Renovar</button>
+                            <div class="mb-2">
+                                <label class="form-label">Archivo del certificado</label>
+                                <input type="file" class="form-control" required name="cert" value="{{ old('cert') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Vencimiento</label>
+                                <input type="date" class="form-control" name="vencimiento" value="{{ variable_global('VENCIMIENTO_CERTIFICADO') }}" required />
+                            </div>
+                            <button class="btn btn-success w-100">Guardar certificado</button>
                         </form>
                     </div>
                 </div>
             </div>
-            
-            {{-- Punto de venta de facturación --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        <div class="display-3">
-                            <i class="far fa-building text-muted"></i>
-                        </div>
-                        <h5 class="card-title">Punto de Venta</h5>
-                        <small>Sin este valor no se puede facturar</small>
-                        <hr>
-                        <form method="post" action="{{route('config.update', obj_variable_global('PUNTO_VENTA')->id)}}" >
-                            @csrf @method('patch')
-                            <input class="form form-control mb-3" name="valor" value="{{variable_global('PUNTO_VENTA')}}">
-                            <button class="btn btn-success">Guardar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            {{-- Usar una impresora termica o convencional --}}
-            <div class="col-12 col-md-3 mb-3">
-                <div class="card info h-100">
-                    <div class="card-body">
-                        <div class="display-3">
-                            <i class="fas fa-print text-muted"></i>
-                        </div>
-                        <h5 class="card-title">Tipo de Impresora</h5>
-                        <small>Se puede elegir el tipo de impresora por defecto para imprimir las facturas. Convencional en A4 o la de ticket</small>
-                        <hr>
-                        <form method="post" action="{{route('config.update', obj_variable_global('TIPO_IMPRESORA')->id)}}" >
-                            @csrf @method('patch')
-                            <select class="form-control form-select mb-3" name="valor">
-                                <option value="AMBAS" {{ variable_global('TIPO_IMPRESORA') == 'AMBAS' ? 'selected' : '' }}>AMBAS</option>
-                                <option value="TERMICA" {{ variable_global('TIPO_IMPRESORA') == 'TERMICA' ? 'selected' : '' }}>TERMICA</option>
-                                <option value="A4" {{ variable_global('TIPO_IMPRESORA') == 'A4' ? 'selected' : '' }}>A4</option>
-                            </select>
-                            <button class="btn btn-success">Guardar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            
         </div>
-        
-        <form method="POST" id="formEliminarMembrete" action="{{route('avatar.destroy')}}">@csrf @method('DELETE')</form>
-        
-        @push('scripts')
+
+        <form method="POST" id="formEliminarMembrete" action="{{ route('avatar.destroy') }}">
+            @csrf
+            @method('DELETE')
+        </form>
+    </div>
+
+    <div id="configStickySaveBar" class="config-sticky-save-bar d-none">
+        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+            <div>
+                <div class="fw-semibold">Cambios sin guardar</div>
+                <small class="text-muted">Guardá una sola vez para aplicar todas las modificaciones.</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" id="discardConfigChanges">Descartar</button>
+                <button type="submit" class="btn btn-success" form="configBulkForm" id="saveConfigChangesButton">
+                    <i class="fas fa-save me-1"></i> Guardar cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
         <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const configForm = document.getElementById('configBulkForm');
+                const stickyBar = document.getElementById('configStickySaveBar');
+                const discardButton = document.getElementById('discardConfigChanges');
+                const saveButton = document.getElementById('saveConfigChangesButton');
+                const requiredKeys = @json(array_keys($requiredBillingFields));
+
+                if (!configForm || !stickyBar) {
+                    return;
+                }
+
+                const serializeForm = () => new URLSearchParams(new FormData(configForm)).toString();
+                const initialFormState = serializeForm();
+
+                const refreshStickyBar = () => {
+                    stickyBar.classList.toggle('d-none', serializeForm() === initialFormState);
+                };
+
+                const refreshRequiredWarnings = () => {
+                    requiredKeys.forEach((key) => {
+                        const input = configForm.querySelector(`[name="config[${key}]"]`);
+                        const card = document.querySelector(`[data-config-card="${key}"]`);
+
+                        if (!input || !card) {
+                            return;
+                        }
+
+                        const missing = input.value.trim() === '';
+                        card.querySelector('.config-warning-badge')?.classList.toggle('d-none', !missing);
+                        card.querySelector('.config-warning-text')?.classList.toggle('d-none', !missing);
+                    });
+                };
+
+                configForm.addEventListener('input', () => {
+                    refreshStickyBar();
+                    refreshRequiredWarnings();
+                });
+
+                configForm.addEventListener('change', () => {
+                    refreshStickyBar();
+                    refreshRequiredWarnings();
+                });
+
+                configForm.addEventListener('submit', () => {
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...';
+                });
+
+                discardButton?.addEventListener('click', () => {
+                    configForm.reset();
+                    refreshRequiredWarnings();
+                    refreshStickyBar();
+                });
+
+                refreshRequiredWarnings();
+                refreshStickyBar();
+            });
+
             const eliminarAvatar = () => {
                 Swal.fire({
                     icon: 'question',
@@ -291,5 +426,27 @@
                 });
             }
         </script>
-        @endpush
-    </x-app-layout>
+    @endpush
+
+    <style>
+        .config-sticky-save-bar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1035;
+            border-top: 1px solid var(--bs-border-color);
+            background-color: var(--bs-body-bg);
+            box-shadow: 0 -0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .config-avatar-preview {
+            width: auto;
+            max-width: 100%;
+            max-height: 180px;
+            display: block;
+            margin-inline: auto;
+            object-fit: contain;
+        }
+    </style>
+</x-app-layout>

@@ -128,10 +128,9 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
 
 ## Pruebas automáticas (entorno seguro)
 
-- Las pruebas (`php artisan test`) están configuradas para usar **solo** una base SQLite aislada en:
-  - `database/testing.sqlite`
-- Si no existe, se crea automáticamente al iniciar los tests.
-- Incluye una protección que falla inmediatamente si la configuración de testing apunta a otra base para evitar tocar datos reales.
+- Las pruebas (`php artisan test`) están configuradas para usar **solo** SQLite en memoria (`:memory:`), sin usar archivos de base de datos en disco.
+- Además se aislaron los paths de cache (`APP_CONFIG_CACHE`, `APP_ROUTES_CACHE`, etc.) para que no reutilicen cache de configuración/rutas del entorno local.
+- Incluye una protección que falla inmediatamente si la configuración de testing apunta a cualquier base diferente de `:memory:`.
 
 ## Notas para cPanel
 

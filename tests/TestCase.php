@@ -9,9 +9,14 @@ abstract class TestCase extends BaseTestCase
 {
     public function createApplication()
     {
+        $this->forceTestingCachePaths();
         $this->ensureSafeTestingDatabaseConfiguration();
 
-        return parent::createApplication();
+        $app = parent::createApplication();
+
+        $this->ensureRuntimeDatabaseIsSafe($app);
+
+        return $app;
     }
 
     protected function ensureSafeTestingDatabaseConfiguration(): void
@@ -31,24 +36,44 @@ abstract class TestCase extends BaseTestCase
             throw new RuntimeException("Configuración insegura: DB_DATABASE de tests no está definido.");
         }
 
-        if ($database === ':memory:') {
-            return;
+        if ($database !== ':memory:') {
+            throw new RuntimeException("Configuración insegura: DB_DATABASE para tests debe ser ':memory:'. Valor actual: {$database}");
+        }
+    }
+
+    protected function forceTestingCachePaths(): void
+    {
+        $cachePaths = [
+            'APP_CONFIG_CACHE' => 'bootstrap/cache/testing-config.php',
+            'APP_ROUTES_CACHE' => 'bootstrap/cache/testing-routes.php',
+            'APP_EVENTS_CACHE' => 'bootstrap/cache/testing-events.php',
+            'APP_PACKAGES_CACHE' => 'bootstrap/cache/testing-packages.php',
+            'APP_SERVICES_CACHE' => 'bootstrap/cache/testing-services.php',
+        ];
+
+        foreach ($cachePaths as $key => $value) {
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+            putenv($key.'='.$value);
+        }
+    }
+
+    protected function ensureRuntimeDatabaseIsSafe($app): void
+    {
+        $defaultConnection = (string) $app['config']->get('database.default');
+        if ($defaultConnection !== 'sqlite') {
+            throw new RuntimeException("Configuración insegura en runtime: conexión por defecto no es sqlite ({$defaultConnection}).");
         }
 
-        $normalizedDatabase = str_replace('\\', '/', $database);
-        if (! str_ends_with($normalizedDatabase, 'testing.sqlite')) {
-            throw new RuntimeException("Configuración insegura: DB_DATABASE de tests debe apuntar a 'testing.sqlite'. Valor actual: {$database}");
+        $configuredDatabase = (string) $app['config']->get('database.connections.sqlite.database');
+        if ($configuredDatabase !== ':memory:') {
+            throw new RuntimeException("Configuración insegura en runtime: sqlite.database debe ser ':memory:' y se recibió '{$configuredDatabase}'.");
         }
 
-        $databasePath = $this->toAbsolutePath($database);
-        $directory = dirname($databasePath);
-
-        if (! is_dir($directory) && ! mkdir($directory, 0777, true) && ! is_dir($directory)) {
-            throw new RuntimeException("No se pudo crear el directorio para la base de pruebas: {$directory}");
-        }
-
-        if (! file_exists($databasePath) && @touch($databasePath) === false) {
-            throw new RuntimeException("No se pudo crear la base de pruebas: {$databasePath}");
+        $cachedConfigPath = (string) $this->envValue('APP_CONFIG_CACHE');
+        $defaultCachedConfigPath = dirname(__DIR__).DIRECTORY_SEPARATOR.'bootstrap'.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR.'config.php';
+        if ($cachedConfigPath === '' || $cachedConfigPath === $defaultCachedConfigPath) {
+            throw new RuntimeException('Configuración insegura: APP_CONFIG_CACHE no está aislado para pruebas.');
         }
     }
 
@@ -57,14 +82,5 @@ abstract class TestCase extends BaseTestCase
         $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
 
         return $value === false ? null : (string) $value;
-    }
-
-    protected function toAbsolutePath(string $path): string
-    {
-        if (preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1 || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
-            return $path;
-        }
-
-        return dirname(__DIR__).DIRECTORY_SEPARATOR.ltrim($path, '\\/');
     }
 }

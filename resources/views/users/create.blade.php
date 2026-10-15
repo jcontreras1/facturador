@@ -135,6 +135,11 @@
                     emailInfo.classList.toggle('d-none', isManual);
                     passwordInput.required = isManual;
                     passwordConfirmInput.required = isManual;
+
+                    if (!isManual) {
+                        passwordInput.value = '';
+                        passwordConfirmInput.value = '';
+                    }
                 };
 
                 modeManual.addEventListener('change', syncMode);

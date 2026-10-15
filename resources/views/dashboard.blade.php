@@ -6,6 +6,8 @@
         @auth
         @php
         $periodoActual = now();
+        $isAdmin = (bool) auth()->user()?->is_admin;
+        $firstCardsColClass = $isAdmin ? 'col-12 col-md-6 col-xl-3 mb-3' : 'col-12 col-md-6 col-xl-6 mb-3';
 
         $facturasQuery = App\Models\Arca\Comprobante::where('tipo_comprobante_id', 5)
             ->whereYear('fecha_emision', $periodoActual->year)
@@ -37,15 +39,17 @@
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
             <div>
                 <h2 class="mb-1">Resumen del mes</h2>
-                <p class="text-muted mb-0">Facturación, notas de crédito y proyección de Ingresos Brutos.</p>
+                <p class="text-muted mb-0">
+                    {{ $isAdmin ? 'Facturación, notas de crédito y proyección de Ingresos Brutos.' : 'Cantidad de facturas y notas de crédito del período actual.' }}
+                </p>
             </div>
             <button type="button" id="toggleVisibility" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-eye me-1"></i> Mostrar u ocultar importes
+                <i class="fas fa-eye me-1"></i> Mostrar u ocultar valores
             </button>
         </div>
 
         <div class="row">
-            <div class="col-12 col-md-6 col-xl-3 mb-3">
+            <div class="{{ $firstCardsColClass }}">
                 <div class="card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #ff8a65, #ff7043); color: #fff;">
                     <div class="card-body">
                         <div class="text-uppercase small opacity-75 mb-2">Comprobantes emitidos</div>
@@ -56,7 +60,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-md-6 col-xl-3 mb-3">
+            <div class="{{ $firstCardsColClass }}">
                 <div class="card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #4db6ac, #00897b); color: #fff;">
                     <div class="card-body">
                         <div class="text-uppercase small opacity-75 mb-2">Ajustes del mes</div>
@@ -66,6 +70,7 @@
                     </div>
                 </div>
             </div>
+            @if ($isAdmin)
 
             <div class="col-12 col-md-6 col-xl-3 mb-3">
                 <div class="card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #ef5350, #c62828); color: #fff;">
@@ -142,6 +147,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
         @endauth
     </div>

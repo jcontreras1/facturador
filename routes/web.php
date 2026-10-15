@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::middleware('can:isAdmin')->group(function () {
+        Route::patch('/config/bulk-update', [ConfigController::class, 'bulkUpdate'])->name('config.bulkUpdate');
         Route::resource('/config', ConfigController::class)->only(['index', 'update']);
         Route::post('/config/avatar', [ConfigController::class, 'set_avatar'])->name('config.avatar');
         Route::delete('/config/avatar', [ConfigController::class, 'unset_avatar'])->name('avatar.destroy');

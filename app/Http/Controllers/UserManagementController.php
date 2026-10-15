@@ -42,13 +42,15 @@ class UserManagementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class, 'email')],
             'password_mode' => ['required', Rule::in(['manual', 'email'])],
-            'password' => [
-                Rule::requiredIf($request->input('password_mode') === 'manual'),
-                'nullable',
-                'confirmed',
-                Password::defaults(),
-            ],
         ]);
+
+        if ($validated['password_mode'] === 'manual') {
+            $passwordValidated = $request->validate([
+                'password' => ['required', 'confirmed', Password::defaults()],
+            ]);
+
+            $validated['password'] = $passwordValidated['password'];
+        }
 
         $user = $validated['password_mode'] === 'manual'
             ? $userProvisioningService->createWithPassword(
