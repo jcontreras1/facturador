@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +48,12 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($user->is_admin && User::query()->where('is_admin', true)->count() <= 1) {
+            return Redirect::route('profile.edit')->withErrors([
+                'password' => 'No podés eliminar el último administrador del sistema.',
+            ], 'userDeletion');
+        }
 
         Auth::logout();
 

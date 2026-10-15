@@ -4,6 +4,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Registration
+    |--------------------------------------------------------------------------
+    |
+    | Allows enabling or disabling public self-registration routes. This is
+    | disabled by default so users are created by administrators or artisan.
+    |
+    */
+    'allow_registration' => filter_var(env('AUTH_ALLOW_REGISTRATION', false), FILTER_VALIDATE_BOOLEAN),
+
+    /*
+    |--------------------------------------------------------------------------
     | Authentication Defaults
     |--------------------------------------------------------------------------
     |

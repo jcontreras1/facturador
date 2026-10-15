@@ -7,12 +7,14 @@ use App\Http\Controllers\Negocio\ContribuyenteController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
-    
+
     //Generar clave privada
-    Route::post('afip/makeKey', [InstallationController::class, 'makeKey'])->name('afip.makeKey');
-    Route::post('afip/newCert', [InstallationController::class, 'newCert'])->name('config.newCert');
-    Route::get('afip/makeCSR', [InstallationController::class, 'makeCSR'])->name('afip.makeCSR');
-    
+    Route::middleware('can:isAdmin')->group(function () {
+        Route::post('afip/makeKey', [InstallationController::class, 'makeKey'])->name('afip.makeKey');
+        Route::post('afip/newCert', [InstallationController::class, 'newCert'])->name('config.newCert');
+        Route::get('afip/makeCSR', [InstallationController::class, 'makeCSR'])->name('afip.makeCSR');
+    });
+
     Route::get('/comprobantes', [ComprobanteController::class, 'index'])->name('comprobantes.index');
     Route::get('/comprobante/{comprobante}/descargar/pdf', [ComprobanteController::class, 'descargarPdf'])->name('comprobante.descargar.pdf');
     Route::get('/comprobante/{comprobante}/descargar/termica', [ComprobanteController::class, 'descargarTermica'])->name('comprobante.descargar.termica');

@@ -8,8 +8,11 @@
 /vendor
 /afip_resources/*
 .env
+.env.testing.local
 .env.backup
 .env.production
+/database/testing.sqlite
+/database/testing.sqlite-*
 .phpactor.json
 .phpunit.result.cache
 Homestead.json

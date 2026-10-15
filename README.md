@@ -45,12 +45,23 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      php artisan db:seed
      ```
 
-5. **Crear enlace simbólico para almacenamiento**
+5. **Crear el primer usuario administrador**
+   - El registro público está deshabilitado por defecto.
+   - Creá el usuario inicial con:
+     ```bash
+     php artisan user:create
+     ```
+   - El primer usuario creado queda automáticamente como **administrador** (`is_admin = true`).
+   - En el asistente podés:
+     - Definir una contraseña en el momento (entrada oculta), o
+     - Enviar un correo para que la persona complete su contraseña con enlace de recuperación.
+
+6. **Crear enlace simbólico para almacenamiento**
    ```bash
    php artisan storage:link
    ```
 
-6. **Configurar para entonrnos como cPanel**
+7. **Configurar para entonrnos como cPanel**
    - Copia los archivos del directorio `public` a la carpeta `public_html`:
      ```bash
      cp -r public/* ../public_html/
@@ -66,7 +77,7 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      ```
    - Guarda los cambios. En este punto, tu aplicación debería estar **funcionando** en `http://tudominio.com/facturar`.
 
-7. **Configurar el archivo `.env`**
+8. **Configurar el archivo `.env`**
    - Edita el archivo `.env`:
      ```bash
      nano .env
@@ -87,10 +98,11 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      SWEET_ALERT_MIDDLEWARE_TOAST_POSITION='top-end'
      SWEET_ALERT_MIDDLEWARE_TOAST_CLOSE_BUTTON=true
      SWEET_ALERT_AUTO_DISPLAY_ERROR_MESSAGES=true
+     AUTH_ALLOW_REGISTRATION=false
      ```
    - Si usas un nombre con espacios, asegúrate de usar comillas, por ejemplo: `APP_NAME="Mi Facturador"`.
 
-8. **Configurar el correo electrónico**
+9. **Configurar el correo electrónico**
    - En el archivo `.env`, busca el bloque de configuración de correo y actualízalo según tu proveedor de correo. Ejemplo:
      ```env
      MAIL_MAILER=smtp
@@ -103,7 +115,7 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      MAIL_FROM_NAME="${APP_NAME}"
      ```
 
-9. **Compilar activos CSS/JS**
+10. **Compilar activos CSS/JS**
    - Si tienes Node.js instalado, compila los activos:
      ```bash
      npm install
@@ -113,6 +125,13 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      - Compila los activos manualmente en tu máquina local ejecutando los comandos anteriores.
      - Sube los archivos generados en `public/build` a la carpeta `public_html/facturar/build` en el servidor.
    - Nota para usuarios de Windows: Asegúrate de tener instalado el plugin OpenSSL (podes descargarlo desde [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html)) si encuentras problemas relacionados con certificados SSL durante la compilación.
+
+## Pruebas automáticas (entorno seguro)
+
+- Las pruebas (`php artisan test`) están configuradas para usar **solo** una base SQLite aislada en:
+  - `database/testing.sqlite`
+- Si no existe, se crea automáticamente al iniciar los tests.
+- Incluye una protección que falla inmediatamente si la configuración de testing apunta a otra base para evitar tocar datos reales.
 
 ## Notas para cPanel
 

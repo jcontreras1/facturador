@@ -19,9 +19,14 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('comprobantes.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('comprobantes.index') }}">Comprobantes</a>
                 </li>
+                @can('isAdmin')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('config.index') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('config.index') }}">Configuraciones</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'border-bottom border-3 border-info' : '' }}" href="{{ route('usuarios.index') }}">Usuarios</a>
+                </li>
+                @endcan
                 @endauth
             </ul>
             <ul class="navbar-nav ms-auto fs-6">
