@@ -6,7 +6,25 @@
             <a href="{{route('clientes.create')}}" class="btn btn-success">Agregar cliente</a>
         </x-title>
 
-            
+            <form method="GET" action="{{ route('clientes.index') }}" class="row g-2 mb-3">
+                <div class="col-12 col-md-6">
+                    <input
+                        type="search"
+                        name="q"
+                        class="form-control"
+                        aria-label="Buscar clientes por razón social, CUIT o email"
+                        placeholder="Buscar por razón social, CUIT o email..."
+                        value="{{ $search }}"
+                    >
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                </div>
+                <div class="col-auto">
+                    <a href="{{ route('clientes.index') }}" class="btn btn-outline-secondary">Limpiar</a>
+                </div>
+            </form>
+
             @if(count($clientes))
             <table class="table table-striped table-sm" id="tabla_clientes">
                 <thead>
@@ -48,10 +66,10 @@
                     @endforeach
                 </tbody>
             </table>
+            {{ $clientes->links() }}
             @else
-            <em>No hay clientes registrados</em>
+            <em>{{ $search !== '' ? 'No se encontraron clientes para la búsqueda.' : 'No hay clientes registrados' }}</em>
             @endif
-        </div>
     </div>
 
 </x-app-layout>

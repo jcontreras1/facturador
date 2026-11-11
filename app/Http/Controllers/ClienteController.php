@@ -17,10 +17,24 @@ use Illuminate\Support\Facades\Mail;
 
 class ClienteController extends Controller
 {
-    public function index(){
-        
-        $clientes = Cliente::with('condicionIva')->orderBy('nombre', 'asc')->get();
-        return view('clientes.index')->with(compact(['clientes']));
+    public function index(Request $request){
+        $search = trim((string) $request->query('q'));
+
+        $clientes = Cliente::with('condicionIva')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($nestedQuery) use ($search) {
+                    $nestedQuery
+                        ->where('nombre', 'like', '%'.$search.'%')
+                        ->orWhere('cuit', 'like', '%'.$search.'%')
+                        ->orWhere('email', 'like', '%'.$search.'%');
+                });
+            })
+            ->orderBy('nombre', 'asc')
+            ->orderBy('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('clientes.index')->with(compact(['clientes', 'search']));
     }
     
     public function create(){
