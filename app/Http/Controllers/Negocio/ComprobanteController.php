@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Mail;
 class ComprobanteController extends Controller
 {
     public function index(){
-        $comprobantes = Comprobante::with('tipoComprobante')->orderBy('id', 'desc')->cursorPaginate(16);
+        $comprobantes = Comprobante::with(['tipoComprobante', 'cliente'])->orderBy('id', 'desc')->cursorPaginate(16);
         return view('comprobantes.index')->with(['comprobantes' => $comprobantes
     ]);
 }
@@ -48,6 +48,7 @@ private function createFactura(string $tipo, ?Cliente $cliente = null){
         'condicionesIva' => $condicionesIva,
         'ivas' => Iva::all(),
         'cliente' => $cliente,
+        'ivaPredeterminado' => $tipo === 'C' ? null : Iva::find(variable_global('IVA_PREDETERMINADO'))?->id,
     ]);
 }
 

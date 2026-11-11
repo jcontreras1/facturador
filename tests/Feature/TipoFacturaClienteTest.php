@@ -142,7 +142,39 @@ test('registered issuers cannot issue C invoices through monthly or batch billin
     $this->assertDatabaseCount('comprobante', 0);
 });
 
-test('valid invoices persist the client and send the AFIP receiver code rather than the database id', function (string $emisor, int $codigo, string $tipo) {
+test('invoice forms receive the configured VAT default for generic and selected clients', function (string $tipo, bool $clienteSeleccionado) {
+    $cliente = Cliente::create([
+        'nombre' => 'Cliente con IVA',
+        'cuit' => '20123456789',
+        'condicion_iva_receptor_id' => IvaReceptor::where('codigo_afip', $tipo === 'A' ? 1 : 5)->firstOrFail()->id,
+    ]);
+    $route = $clienteSeleccionado ? 'cliente.comprobante.create.' : 'comprobante.create.';
+    $url = route($route.strtolower($tipo), $clienteSeleccionado ? $cliente : []);
+
+    foreach ([null, Iva::where('codigo_afip', '3')->firstOrFail()->id, Iva::where('codigo_afip', '5')->firstOrFail()->id] as $ivaId) {
+        VariableGlobal::where('clave', 'IVA_PREDETERMINADO')->update(['valor' => $ivaId]);
+
+        $this->get($url)->assertOk()
+            ->assertViewHas('ivaPredeterminado', $ivaId)
+            ->assertSee(':iva-predeterminado="'.($ivaId ?? 'null').'"', false);
+    }
+})->with([['A', false], ['A', true], ['B', false], ['B', true]]);
+
+test('A and B invoices reject missing or invalid VAT rates on any line before contacting ARCA', function (string $tipo, mixed $iva) {
+    $ivaValido = Iva::where('codigo_afip', '5')->firstOrFail()->id;
+    VariableGlobal::where('clave', 'IVA_PREDETERMINADO')->update(['valor' => $ivaValido]);
+
+    $this->postJson(route('comprobante.'.strtolower($tipo).'.store'), [
+        'condicionIva' => IvaReceptor::where('codigo_afip', $tipo === 'A' ? 1 : 5)->firstOrFail()->id,
+        'lineas' => [['iva' => $ivaValido], ['iva' => $iva]],
+    ])->assertUnprocessable()->assertJsonValidationErrors('lineas.1.iva');
+
+    $this->assertDatabaseCount('comprobante', 0);
+})->with(['A', 'B'])->with([null, '', 99999, 'invalida']);
+
+test('valid invoices persist matching clients and send the AFIP receiver code rather than the database id', function (
+    string $emisor, int $codigo, string $tipo, bool $clienteSeleccionado = true, int $tipoDocumento = 80, bool $cuitCoincidente = true
+) {
     VariableGlobal::where('clave', 'CONDICION_IVA')->update(['valor' => $emisor]);
     VariableGlobal::where('clave', 'PUNTO_VENTA')->update(['valor' => '1']);
     $receptor = IvaReceptor::create([
@@ -173,9 +205,9 @@ test('valid invoices persist the client and send the AFIP receiver code rather t
     };
     $this->app->instance(Afip::class, $afip);
 
-    $this->postJson(route('comprobante.'.strtolower($tipo).'.store', ['cliente' => $cliente->id]), [
-        'tipoDocumentoId' => 80,
-        'documento' => $cliente->cuit,
+    $this->postJson(route('comprobante.'.strtolower($tipo).'.store', $clienteSeleccionado ? ['cliente' => $cliente->id] : []), [
+        'tipoDocumentoId' => $tipoDocumento,
+        'documento' => $cuitCoincidente ? $cliente->cuit : '30999999999',
         'razonSocial' => $cliente->nombre,
         'domicilio' => 'Domicilio de prueba',
         'condicionIva' => $receptor->id,
@@ -196,13 +228,21 @@ test('valid invoices persist the client and send the AFIP receiver code rather t
         ]],
     ])->assertCreated();
 
+    $clienteEsperado = $clienteSeleccionado || ($tipoDocumento === 80 && $cuitCoincidente) ? $cliente->id : null;
     $this->assertDatabaseHas('comprobante', [
-        'cliente_id' => $cliente->id,
+        'cliente_id' => $clienteEsperado,
         'condicion_iva_receptor_id' => $receptor->id,
         'tipo_comprobante_id' => $tipoComprobante->id,
         'nro_comprobante' => 11,
         'cae' => '12345678901234',
     ]);
+
+    if (!$clienteSeleccionado) {
+        $this->get(route('comprobantes.index'))->assertOk()
+            ->assertViewHas('comprobantes', fn ($comprobantes) => $comprobantes->first()->cliente_id === $clienteEsperado);
+        $this->get(route('clientes.dashboard', $cliente))->assertOk()
+            ->assertViewHas('comprobantes', fn ($comprobantes) => $comprobantes->count() === ($clienteEsperado ? 1 : 0));
+    }
 })->with([
     ['IVA Responsable Inscripto', 1, 'A'],
     ['IVA Responsable Inscripto', 6, 'A'],
@@ -212,4 +252,10 @@ test('valid invoices persist the client and send the AFIP receiver code rather t
     ['Responsable Monotributo', 6, 'C'],
     ['Responsable Monotributo', 4, 'C'],
     ['Responsable Monotributo', 5, 'C'],
+    ['IVA Responsable Inscripto', 1, 'A', false],
+    ['IVA Responsable Inscripto', 5, 'B', false],
+    ['Responsable Monotributo', 5, 'C', false],
+    ['Responsable Monotributo', 5, 'C', false, 96],
+    ['Responsable Monotributo', 5, 'C', false, 99],
+    ['Responsable Monotributo', 5, 'C', false, 80, false],
 ]);

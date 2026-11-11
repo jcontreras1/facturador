@@ -20,7 +20,7 @@ class CController extends Controller
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
         $condicionIvaReceptor = IvaReceptor::findOrFail($request->condicionIva);
         $afip = app(Afip::class);
-        $cliente = $request->has('cliente') && $request->cliente ? $request->cliente : null;
+        $cliente = $request->clienteParaComprobante();
         DB::beginTransaction();
         try {
             $puntoVenta = variable_global('PUNTO_VENTA');
@@ -41,7 +41,7 @@ class CController extends Controller
                 'fecha_servicio_desde' => $request->concepto == '1' ? null : $request->fechaInicioServicios,
                 'fecha_servicio_hasta' => $request->concepto == '1' ? null : $request->fechaFinServicios,
                 'fecha_vencimiento_pago' => $request->concepto == '1' ? null : $request->fechaVencimientoPago,
-                'cliente_id' => $cliente,
+                'cliente_id' => $cliente?->id,
             ]);
             
             foreach($request->lineas as $linea){

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VariableGlobal;
+use App\Models\Arca\Iva;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,6 +14,7 @@ class ConfigController extends Controller
 {
     public function index(){
         $variables = VariableGlobal::all();
+        $ivas = Iva::all();
         $afipKeyMissing = !is_file(afipDir().'key') || !is_readable(afipDir().'key');
         $afipCertificateMissing = !is_file(afipDir().'cert') || !is_readable(afipDir().'cert');
         $certificateContent = $afipCertificateMissing ? null : file_get_contents(afipDir().'cert');
@@ -25,6 +27,7 @@ class ConfigController extends Controller
             && !@openssl_x509_check_private_key($certificateContent, file_get_contents(afipDir().'key'));
         return view('config.index')->with(compact([
             'variables',
+            'ivas',
             'afipKeyMissing',
             'afipCertificateMissing',
             'afipCertificateInvalid',
@@ -36,7 +39,9 @@ class ConfigController extends Controller
     public function update(VariableGlobal $config, Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'valor' => ['nullable', 'string'],
+            'valor' => $config->clave === 'IVA_PREDETERMINADO'
+                ? ['nullable', 'integer', 'exists:iva,id']
+                : ['nullable', 'string'],
         ]);
 
         $config->update(['valor' => $validated['valor'] ?? null]);
@@ -54,6 +59,7 @@ class ConfigController extends Controller
             'config.DOMICILIO_FISCAL' => ['nullable', 'string', 'max:255'],
             'config.FECHA_INICIO_ACTIVIDADES' => ['nullable', 'date'],
             'config.CONDICION_IVA' => ['nullable', 'string', Rule::in($this->condicionIvaOptions())],
+            'config.IVA_PREDETERMINADO' => ['nullable', 'integer', 'exists:iva,id'],
             'config.PUNTO_VENTA' => ['nullable', 'string', 'max:20'],
             'config.TIPO_IMPRESORA' => ['nullable', 'string', Rule::in(['AMBAS', 'TERMICA', 'A4'])],
             'config.TOPE_FACTURACION_CONSUMIDOR_FINAL' => ['nullable', 'string', 'max:30'],
@@ -70,6 +76,7 @@ class ConfigController extends Controller
             }
 
             $variable = VariableGlobal::query()->firstOrNew(['clave' => $key]);
+            $variable->clave = $key;
             if (! $variable->exists || blank($variable->descripcion)) {
                 $variable->descripcion = $definition['descripcion'];
             }
@@ -121,6 +128,7 @@ class ConfigController extends Controller
             'DOMICILIO_FISCAL' => ['descripcion' => 'Domicilio fiscal de la empresa'],
             'FECHA_INICIO_ACTIVIDADES' => ['descripcion' => 'Fecha de inicio de actividades de la empresa'],
             'CONDICION_IVA' => ['descripcion' => 'Condiciones de IVA para facturación electrónica'],
+            'IVA_PREDETERMINADO' => ['descripcion' => 'Alícuota de IVA predeterminada para facturas A y B'],
             'PUNTO_VENTA' => ['descripcion' => 'Punto de venta para facturación electrónica'],
             'TIPO_IMPRESORA' => ['descripcion' => 'Estilo de impresora para la factura'],
             'TOPE_FACTURACION_CONSUMIDOR_FINAL' => ['descripcion' => 'Tope de facturación para responsable inscripto'],

@@ -56,6 +56,11 @@ class DatabaseSeeder extends Seeder
                 'valor' => '',
             ],
             [
+                'clave' => 'IVA_PREDETERMINADO',
+                'descripcion' => 'Alícuota de IVA predeterminada para facturas A y B',
+                'valor' => '',
+            ],
+            [
                 'clave' => 'DOMICILIO_FISCAL',
                 'descripcion' => 'Domicilio fiscal de la empresa',
                 'valor' => '',

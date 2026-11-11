@@ -114,9 +114,11 @@
           </div>
           <div class="col-12 col-md-1">
             <label for="iva{{ index }}">IVA</label>
-            <select v-model="linea.iva" class="form-select form-select-sm" @change="calcularSubtotal(index)">
+            <select v-model="linea.iva" class="form-select form-select-sm" :class="{ 'is-invalid': linea.ivaInvalido }" required @invalid="linea.ivaInvalido = true" @change="linea.ivaInvalido = false; calcularSubtotal(index)">
+              <option value="">Seleccionar</option>
               <option v-for="iva in props.ivas" :key="iva.id" :value="iva.id">{{ iva.descripcion }}</option>
             </select>
+            <div class="invalid-feedback">Seleccioná una alícuota.</div>
           </div>
           <div class="col-12 col-md-2">
             <label for="subtotalConIva{{ index }}">Subtotal c/IVA</label>
@@ -160,6 +162,10 @@ const props = defineProps({
     default: null,
   },
   ivas: Object,
+  ivaPredeterminado: {
+    type: Number,
+    default: null,
+  },
 })
 
 const form = reactive({
@@ -276,7 +282,7 @@ const calcularBonificacion = (index) => {
 
 const agregarLinea = () => {
   const idLinea = lineas.value.length
-  const ivaPorDefecto = props.ivas.find((iva) => iva.descripcion === '21%')?.id ?? props.ivas[0]?.id ?? null
+  const ivaPorDefecto = props.ivas.find((iva) => iva.id === props.ivaPredeterminado)?.id ?? ''
   lineas.value.push({
     id: idLinea,
     codigo: '',
@@ -288,6 +294,7 @@ const agregarLinea = () => {
     importeBonificado: 0,
     subtotal: 0,
     iva: ivaPorDefecto,
+    ivaInvalido: false,
     subtotalConIva: 0,
   })
   setTimeout(() => {
@@ -351,6 +358,18 @@ const submitForm = () => {
       icon: 'error',
       title: 'Error',
       text: 'Debe haber al menos una línea de detalle en la factura.',
+    })
+    return
+  }
+
+  lineas.value.forEach(linea => {
+    linea.ivaInvalido = !props.ivas.some(iva => iva.id === linea.iva)
+  })
+  if (lineas.value.some(linea => linea.ivaInvalido)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Seleccioná una alícuota de IVA en cada línea.',
     })
     return
   }

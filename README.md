@@ -148,6 +148,10 @@ La página de clientes permite buscar por razón social, CUIT o email. Los resul
 
 Al confirmar una factura A, B o C, o una nota de crédito desde la anulación de un comprobante, se muestra un spinner que bloquea la interacción con la página y evita envíos repetidos mientras se procesa la solicitud. Si la emisión falla, se muestra el error y se permite volver a intentar.
 
+Para emisores responsables inscriptos, el administrador puede elegir una **Alícuota de IVA predeterminada** en Configuraciones. Se aplica a cada nueva línea de las facturas A y B, con o sin cliente seleccionado. Sin un valor predeterminado, el campo muestra **Seleccionar** y es obligatorio elegir una alícuota en cada línea; los campos pendientes se marcan como inválidos al intentar emitir. La variable `IVA_PREDETERMINADO` se incluye vacía en el seeder general y también puede guardarse desde configuración en instalaciones existentes sin volver a ejecutar el seeder.
+
+Al emitir una factura A, B o C con tipo de documento CUIT, si ese CUIT ya pertenece a un cliente registrado, el comprobante se vincula automáticamente a ese cliente. Así aparece tanto en el listado general con su referencia como en el panel del cliente. No se vinculan automáticamente los DNI ni los consumidores finales, y se respeta el cliente elegido explícitamente.
+
 ## Formato de importes al facturar
 
 En los comprobantes A, B y C, el precio unitario se formatea mientras se escribe: `1234` se muestra como `1.234`, y tanto `1234.2` como `1234,2` se muestran como `1.234,2`. Se pueden pegar importes como `1.234,20` o `1234.20`. Los importes bonificados y subtotales, con y sin IVA, se muestran con dos decimales en formato argentino. Los cálculos y los datos enviados a la API mantienen valores numéricos sin separadores de miles.

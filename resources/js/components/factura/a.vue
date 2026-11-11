@@ -120,9 +120,11 @@
           
           <div class="col-12 col-md-1">
             <label for="iva{{ index }}">IVA</label>
-            <select v-model="linea.iva" class="form-select form-select-sm" @change="calcularSubtotal(index)">
+            <select v-model="linea.iva" class="form-select form-select-sm" :class="{ 'is-invalid': linea.ivaInvalido }" required @invalid="linea.ivaInvalido = true" @change="linea.ivaInvalido = false; calcularSubtotal(index)">
+              <option value="">Seleccionar</option>
               <option v-for="iva in props.ivas" :key="iva.id" :value="iva.id">{{ iva.descripcion }}</option>
             </select>
+            <div class="invalid-feedback">Seleccioná una alícuota.</div>
           </div>
           <div class="col-12 col-md-2">
             <label for="subtotalConIva{{ index }}">Subtotal con IVA</label>
@@ -167,6 +169,10 @@ const props = defineProps({
     default: null
   },
   ivas: Object,
+  ivaPredeterminado: {
+    type: Number,
+    default: null,
+  },
 })
 
 // Reactive state
@@ -272,7 +278,8 @@ const agregarLinea = () => {
     bonificacion: 0,
     importeBonificado: 0,
     subtotal: 0,
-    iva: props.ivas.find(iva => iva.descripcion === '0%').id,
+    iva: props.ivas.find(iva => iva.id === props.ivaPredeterminado)?.id ?? '',
+    ivaInvalido: false,
   })
   setTimeout(() => {
     const lastDescripcionField = document.querySelectorAll('.descripcion');
@@ -340,6 +347,18 @@ const submitForm = () => {
     return
   }
   
+  lineas.value.forEach(linea => {
+    linea.ivaInvalido = !props.ivas.some(iva => iva.id === linea.iva)
+  })
+  if (lineas.value.some(linea => linea.ivaInvalido)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Seleccioná una alícuota de IVA en cada línea.',
+    })
+    return
+  }
+
   if (importeTotal.value == 0) {
     Swal.fire({
       icon: 'error',

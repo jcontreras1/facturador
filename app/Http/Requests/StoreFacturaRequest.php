@@ -25,17 +25,46 @@ class StoreFacturaRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'condicionIva' => ['required', 'integer', 'exists:condicion_iva_receptor,id'],
             'cliente' => ['nullable', 'integer', 'exists:clientes,id'],
         ];
+
+        if (in_array($this->tipoFactura(), ['A', 'B'], true)) {
+            $rules['lineas'] = ['required', 'array', 'min:1'];
+            $rules['lineas.*.iva'] = ['required', 'integer', 'exists:iva,id'];
+        }
+
+        return $rules;
+    }
+
+    public function messages(): array
+    {
+        return [
+            'lineas.*.iva.required' => 'Seleccioná una alícuota de IVA en cada línea.',
+            'lineas.*.iva.exists' => 'La alícuota de IVA seleccionada no es válida.',
+        ];
+    }
+
+    public function clienteParaComprobante(): ?Cliente
+    {
+        if ($this->filled('cliente')) {
+            return Cliente::findOrFail($this->input('cliente'));
+        }
+
+        $documento = preg_replace('/\D/', '', (string) $this->input('documento'));
+        if ($this->integer('tipoDocumentoId') !== 80 || strlen($documento) !== 11) {
+            return null;
+        }
+
+        return Cliente::where('cuit', $documento)->first();
     }
 
     public function after(): array
     {
         return [
             function (Validator $validator) {
-                if ($validator->errors()->isNotEmpty()) {
+                if ($validator->errors()->has('condicionIva') || $validator->errors()->has('cliente')) {
                     return;
                 }
 

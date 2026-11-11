@@ -210,6 +210,22 @@
                     </div>
                 </div>
             @endforeach
+            @php($mostrarIvaPredeterminado = in_array($getValue('CONDICION_IVA'), ['IVA Responsable Inscripto', 'Responsable Inscripto'], true))
+            <div class="card shadow-sm" id="ivaPredeterminadoCard" @if (!$mostrarIvaPredeterminado) hidden @endif>
+                <div class="card-body">
+                    <label for="ivaPredeterminado" class="h5 card-title mb-1">Alícuota de IVA predeterminada</label>
+                    <p class="text-muted mb-3">Se selecciona automáticamente en las nuevas líneas de las facturas A y B. Sin un valor predeterminado, deberás elegir una alícuota en cada línea.</p>
+                    <select id="ivaPredeterminado" name="config[IVA_PREDETERMINADO]" class="form-select @error('config.IVA_PREDETERMINADO') is-invalid @enderror" @disabled(!$mostrarIvaPredeterminado)>
+                        <option value="">Sin valor predeterminado</option>
+                        @foreach ($ivas as $iva)
+                            <option value="{{ $iva->id }}" @selected((string) $getValue('IVA_PREDETERMINADO') === (string) $iva->id)>{{ $iva->descripcion }}</option>
+                        @endforeach
+                    </select>
+                    @error('config.IVA_PREDETERMINADO')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
         </form>
 
         <hr class="my-4">
@@ -375,6 +391,13 @@
                 const serializeForm = () => new URLSearchParams(new FormData(configForm)).toString();
                 const initialFormState = serializeForm();
 
+                const refreshIvaPredeterminado = () => {
+                    const condicion = configForm.querySelector('[name="config[CONDICION_IVA]"]').value;
+                    const visible = ['IVA Responsable Inscripto', 'Responsable Inscripto'].includes(condicion);
+                    document.getElementById('ivaPredeterminadoCard').hidden = !visible;
+                    document.getElementById('ivaPredeterminado').disabled = !visible;
+                };
+
                 const refreshStickyBar = () => {
                     stickyBar.classList.toggle('d-none', serializeForm() === initialFormState);
                 };
@@ -395,11 +418,13 @@
                 };
 
                 configForm.addEventListener('input', () => {
+                    refreshIvaPredeterminado();
                     refreshStickyBar();
                     refreshRequiredWarnings();
                 });
 
                 configForm.addEventListener('change', () => {
+                    refreshIvaPredeterminado();
                     refreshStickyBar();
                     refreshRequiredWarnings();
                 });
@@ -411,6 +436,7 @@
 
                 discardButton?.addEventListener('click', () => {
                     configForm.reset();
+                    refreshIvaPredeterminado();
                     refreshRequiredWarnings();
                     refreshStickyBar();
                 });
