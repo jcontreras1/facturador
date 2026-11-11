@@ -90,7 +90,7 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      APP_LOCALE=es
      APP_FALLBACK_LOCALE=en
      APP_FAKER_LOCALE=es_AR
-     ASSET_URL=${APP_URL}
+     ASSET_URL=
      SANCTUM_STATEFUL_DOMAINS=        #Tu sitio web sin https ni www. Ej: misitioweb.com
      SESSION_DOMAIN=                  #Tu sitio web sin https ni www. con un punto delante. Ej: .misitioweb.com
      VITE_APP_NAME="${APP_NAME}"
@@ -124,6 +124,9 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
    - Si **no tienes Node.js** o estás usando cPanel:
      - Compila los activos manualmente en tu máquina local ejecutando los comandos anteriores.
      - Sube los archivos generados en `public/build` a la carpeta `public_html/facturar/build` en el servidor.
+   - Los recursos compilados usan rutas relativas: las fuentes e íconos se cargan junto al CSS, sin guardar el dominio de la máquina que compiló. Las etiquetas de Vite usan la ruta de instalación de la petición, también en subcarpetas como `/facturar`.
+   - Dejá `ASSET_URL` vacío para que los demás recursos públicos no apunten a un dominio fijo. `APP_URL` debe contener la URL real del entorno. Si corregís estas variables en producción, ejecutá `php artisan config:clear`.
+   - Para reemplazar una compilación anterior que contiene el dominio local, volvé a ejecutar `npm run build` y subí **toda** la carpeta `public/build`, incluido `manifest.json`. No subas `public/hot`: ese archivo es exclusivo del servidor de desarrollo. Después, recargá el navegador sin caché.
    - Nota para usuarios de Windows: Asegúrate de tener instalado el plugin OpenSSL (podes descargarlo desde [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html)) si encuentras problemas relacionados con certificados SSL durante la compilación.
 
 ## Certificado y clave para ARCA
