@@ -148,6 +148,8 @@ La página de clientes permite buscar por razón social, CUIT o email. Los resul
 
 Al confirmar una factura A, B o C, o una nota de crédito desde la anulación de un comprobante, se muestra un spinner que bloquea la interacción con la página y evita envíos repetidos mientras se procesa la solicitud. Si la emisión falla, se muestra el error y se permite volver a intentar.
 
+La anulación genera una nota de crédito de la misma letra que la factura: A (código ARCA 3), B (8) o C (13), asociada al comprobante original. Para A y B se conservan las líneas y el desglose de IVA por alícuota.
+
 Para emisores responsables inscriptos, el administrador puede elegir una **Alícuota de IVA predeterminada** en Configuraciones. Se aplica a cada nueva línea de las facturas A y B, con o sin cliente seleccionado. Sin un valor predeterminado, el campo muestra **Seleccionar** y es obligatorio elegir una alícuota en cada línea; los campos pendientes se marcan como inválidos al intentar emitir. La variable `IVA_PREDETERMINADO` se incluye vacía en el seeder general y también puede guardarse desde configuración en instalaciones existentes sin volver a ejecutar el seeder.
 
 Al emitir una factura A, B o C con tipo de documento CUIT, si ese CUIT ya pertenece a un cliente registrado, el comprobante se vincula automáticamente a ese cliente. Así aparece tanto en el listado general con su referencia como en el panel del cliente. No se vinculan automáticamente los DNI ni los consumidores finales, y se respeta el cliente elegido explícitamente.

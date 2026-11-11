@@ -38,7 +38,12 @@
             <tbody>
                 @foreach($comprobantes as $comprobante)
                 <tr>
-                    <td>{{ $comprobante->tipoComprobante?->descripcion }}</td>
+                    <td>
+                        {{ $comprobante->tipoComprobante?->descripcion }}
+                        @if($comprobante->anulacion_id)
+                        <em><small>(anulada)</small></em>
+                        @endif
+                    </td>
                     <td>{{ $comprobante->nro_comprobante ? str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) : 'S/N' }}</td>
                     <td>{{ $comprobante->created_at->format('d/m/Y H:i') }}</td>
                     <td>

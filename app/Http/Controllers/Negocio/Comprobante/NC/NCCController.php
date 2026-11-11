@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\DetalleComprobante;
 use App\Models\Arca\TipoComprobante;
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -20,9 +19,15 @@ class NCCController extends Controller
             alert('Error', 'El comprobante ya ha sido anulado', 'error')->autoClose(0);
             return redirect()->back();
         }
-        $afip = new Afip();
-        //comprobante N(CC)
-        $tipoComprobante = TipoComprobante::where('codigo', 'CC')->first();
+        $codigoNotaCredito = match ($comprobante->tipoComprobante->codigo) {
+            'A' => 'CA',
+            'B' => 'CB',
+            'C' => 'CC',
+            default => null,
+        };
+        abort_if($codigoNotaCredito === null, 422, 'Solo se pueden anular facturas A, B o C.');
+        $tipoComprobante = TipoComprobante::where('codigo', $codigoNotaCredito)->firstOrFail();
+        $afip = app(Afip::class);
         $punto_de_venta = variable_global('PUNTO_VENTA');
         $last_voucher = $afip->FacturaElectronica->GetLastVoucher($punto_de_venta, $tipoComprobante->codigo_afip);
         $numero = $last_voucher + 1;
@@ -30,11 +35,11 @@ class NCCController extends Controller
         $fecha_servicio_desde = null;
         $fecha_servicio_hasta = null;
         $fecha_vencimiento_pago = null;
-        if ($comprobante->concepto === 2 || $comprobante->concepto === 3) {
+        if (in_array((int) $comprobante->concepto, [2, 3], true)) {
             $fecha_servicio_desde = intval(str_replace('-', '', $comprobante->fecha_servicio_desde));
             $fecha_servicio_hasta = intval(str_replace('-', '', $comprobante->fecha_servicio_hasta));
-            if(Carbon::parse($fecha_vencimiento_pago)->startOfDay()->isPast()){
-                $fecha_vencimiento_pago = intval(date('Ymd'));
+            if(Carbon::parse($comprobante->fecha_vencimiento_pago)->startOfDay()->isPast()){
+                $fecha_vencimiento_pago = (int) now()->format('Ymd');
             }else{
                 $fecha_vencimiento_pago = intval(str_replace('-', '', $comprobante->fecha_vencimiento_pago));
             }
@@ -49,7 +54,7 @@ class NCCController extends Controller
             'DocNro' => $comprobante->cuit_dni ?? 0,
             'CbteDesde' => $numero,
             'CbteHasta' => $numero,
-            'CbteFch' => intval(date('Ymd')),
+            'CbteFch' => (int) now()->format('Ymd'),
             'FchServDesde' => $fecha_servicio_desde,
             'FchServHasta' => $fecha_servicio_hasta,
             'FchVtoPago' => $fecha_vencimiento_pago,
@@ -59,7 +64,7 @@ class NCCController extends Controller
             'ImpOpEx' => 0,
             'ImpIVA' => 0,
             'ImpTrib' => 0,
-            'CondicionIVAReceptorId' => $comprobante->condicion_iva_receptor_id,
+            'CondicionIVAReceptorId' => (int) $comprobante->condicionIvaReceptor->codigo_afip,
             'MonId' => 'PES',
             'MonCotiz' => 1,
             'CbtesAsoc' => [
@@ -70,6 +75,25 @@ class NCCController extends Controller
                 ]
             ]
         ];
+
+        if ($codigoNotaCredito !== 'CC') {
+            $comprobante->loadMissing('detalle.iva');
+            abort_if(
+                $comprobante->detalle->isEmpty() || $comprobante->detalle->contains(fn ($detalle) => ! $detalle->iva),
+                422,
+                'La factura no tiene el detalle de IVA necesario para generar la nota de credito.'
+            );
+            $desgloseIva = desglose_iva_comprobante($comprobante);
+            $data['ImpNeto'] = round($comprobante->detalle->sum('importe_subtotal'), 2);
+            $data['ImpIVA'] = round($desgloseIva->sum('importe_iva'), 2);
+            $data['Iva'] = $desgloseIva->map(function ($desglose) {
+                return [
+                    'Id' => (int) $desglose['iva']->codigo_afip,
+                    'BaseImp' => $desglose['importe_neto'],
+                    'Importe' => $desglose['importe_iva'],
+                ];
+            })->all();
+        }
 
         DB::beginTransaction();
         try {
@@ -87,7 +111,7 @@ class NCCController extends Controller
                 'cliente_id' => $comprobante->cliente_id,
                 'importe_no_gravado' => $comprobante->importe_no_gravado,
                 'importe_exento_iva' => $comprobante->importe_exento_iva,
-                'importe_iva' => $comprobante->importe_iva,
+                'importe_iva' => $data['ImpIVA'],
                 'importe_total_tributos' => $comprobante->importe_total_tributos,
                 'importe_total' => $comprobante->importe_total,
                 'observaciones' => $comprobante->observaciones,
@@ -99,16 +123,22 @@ class NCCController extends Controller
                 'concepto' => $comprobante->concepto,
             ]);
 
-            DetalleComprobante::create([
-                'comprobante_id' => $notaDeCredito->id,
-                'descripcion' => 'Nota de crédito por anulación de comprobante',
-                'cantidad' => 1,
-                'unidad_medida' => 'UN',
-                'importe_unitario' => $comprobante->importe_total,
-                'porcentaje_descuento' => 0,
-                'importe_descuento' => 0,
-                'importe_subtotal' => $comprobante->importe_total,
-            ]);
+            if ($codigoNotaCredito === 'CC') {
+                DetalleComprobante::create([
+                    'comprobante_id' => $notaDeCredito->id,
+                    'descripcion' => 'Nota de crédito por anulación de comprobante',
+                    'cantidad' => 1,
+                    'unidad_medida' => 'UN',
+                    'importe_unitario' => $comprobante->importe_total,
+                    'porcentaje_descuento' => 0,
+                    'importe_descuento' => 0,
+                    'importe_subtotal' => $comprobante->importe_total,
+                ]);
+            } else {
+                foreach ($comprobante->detalle as $detalle) {
+                    $notaDeCredito->detalle()->save($detalle->replicate());
+                }
+            }
 
             $comprobante->update([
                 'anulacion_id' => $notaDeCredito->id

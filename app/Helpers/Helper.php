@@ -96,12 +96,12 @@ function desglose_iva_comprobante(Comprobante $comprobante)
 
 function comprobante_discrimina_iva(Comprobante $comprobante): bool
 {
-	return in_array($comprobante->tipoComprobante?->codigo, ['A', 'B'], true);
+	return in_array($comprobante->tipoComprobante?->codigo, ['A', 'B', 'CA', 'CB'], true);
 }
 
 function comprobante_aplica_transparencia_fiscal(Comprobante $comprobante): bool
 {
-	return $comprobante->tipoComprobante?->codigo === 'B';
+	return in_array($comprobante->tipoComprobante?->codigo, ['B', 'CB'], true);
 }
 
 function afipDir():string{
