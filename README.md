@@ -126,6 +126,13 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
      - Sube los archivos generados en `public/build` a la carpeta `public_html/facturar/build` en el servidor.
    - Nota para usuarios de Windows: Asegúrate de tener instalado el plugin OpenSSL (podes descargarlo desde [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html)) si encuentras problemas relacionados con certificados SSL durante la compilación.
 
+## Certificado y clave para ARCA
+
+- La firma de solicitudes y la solicitud CSR usan exclusivamente `afip_resources/cert` (certificado PEM) y `afip_resources/key` (clave privada PEM sin contraseña). Las copias antiguas de `AFIP_CERTIFICADO` y `AFIP_KEY` en la base de datos no se utilizan ni se actualizan.
+- El certificado debe haber sido emitido para esa misma clave privada. Si no coinciden, recuperá la clave original del certificado o solicitá un nuevo certificado a ARCA con el CSR generado desde la clave instalada. No generes otra clave si necesitás conservar un certificado existente.
+- La pantalla de configuración consulta los archivos y obtiene el vencimiento del propio certificado. Al cargar un certificado se verifica que corresponda a la clave instalada.
+- El proceso PHP necesita permiso de lectura sobre ambos archivos y escritura en `afip_resources` para los tickets de acceso. Esta carpeta contiene credenciales privadas: no debe publicarse ni agregarse a Git.
+
 ## Pruebas automáticas (entorno seguro)
 
 - Las pruebas (`php artisan test`) están configuradas para usar **solo** SQLite en memoria (`:memory:`), sin usar archivos de base de datos en disco.

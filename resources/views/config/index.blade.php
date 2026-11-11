@@ -74,14 +74,12 @@
 
         $missingRequiredFields = collect($requiredBillingFields)->filter(fn ($field, $key) => $isMissing($key));
 
-        $afipKeyMissing = trim((string) variable_global('AFIP_KEY')) === '';
-        $afipCertificateMissing = trim((string) variable_global('AFIP_CERTIFICADO')) === '';
-        $afipCertificateExpired = variable_global('VENCIMIENTO_CERTIFICADO')
-            && Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->isPast();
+        $afipCertificateExpired = $afipCertificateExpiration?->isPast() ?? false;
 
         $missingSystemItems = collect([
             ['label' => 'Clave privada AFIP', 'missing' => $afipKeyMissing],
-            ['label' => 'Certificado AFIP', 'missing' => $afipCertificateMissing],
+            ['label' => 'Certificado AFIP vigente y valido', 'missing' => $afipCertificateMissing || $afipCertificateInvalid || $afipCertificateExpired],
+            ['label' => 'Certificado y clave privada AFIP correspondientes entre si', 'missing' => $afipCredentialsMismatch],
         ])->filter(fn ($item) => $item['missing']);
 
         $hasBlockingWarnings = $missingRequiredFields->isNotEmpty() || $missingSystemItems->isNotEmpty();
@@ -258,7 +256,7 @@
                         </h5>
                         <p class="text-muted">Se utiliza para firmar certificados y comprobantes.</p>
 
-                        @if (! variable_global('AFIP_KEY'))
+                        @if ($afipKeyMissing)
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle me-1"></i>
                                 Todavía no existe una clave privada.
@@ -286,25 +284,34 @@
                     <div class="card-body">
                         <h5 class="card-title">
                             Certificado AFIP
-                            @if ($afipCertificateMissing || $afipCertificateExpired)
+                            @if ($afipCertificateMissing || $afipCertificateInvalid || $afipCertificateExpired || $afipCredentialsMismatch)
                                 <i class="fas fa-exclamation-triangle text-warning ms-1" title="Certificado pendiente o vencido"></i>
                             @endif
                         </h5>
                         <p class="text-muted">Certificado emitido por ARCA/AFIP para la facturación electrónica.</p>
 
-                        @if (variable_global('AFIP_CERTIFICADO'))
-                            @if ($afipCertificateExpired)
+                        @if (! $afipCertificateMissing)
+                            @if ($afipCertificateInvalid)
+                                <div class="alert alert-danger">
+                                    El archivo afip_resources/cert no contiene un certificado PEM valido.
+                                </div>
+                            @elseif ($afipCredentialsMismatch)
+                                <div class="alert alert-danger">
+                                    El certificado afip_resources/cert no corresponde a la clave privada afip_resources/key.
+                                    Instale el par de certificado y clave correspondiente.
+                                </div>
+                            @elseif ($afipCertificateExpired)
                                 <div class="alert alert-danger">
                                     <i class="fas fa-exclamation-triangle me-1"></i>
                                     <strong>Certificado vencido.</strong>
-                                    Venció {{ Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->diffForHumans() }}.
+                                    Venció {{ $afipCertificateExpiration->diffForHumans() }}.
                                 </div>
                             @else
                                 <div class="alert alert-success">
                                     <i class="fas fa-check-circle me-1"></i>
                                     Certificado cargado.
-                                    Vence el <strong>{{ date('d/m/Y', strtotime(variable_global('VENCIMIENTO_CERTIFICADO'))) }}</strong>
-                                    <small>({{ Carbon\Carbon::parse(variable_global('VENCIMIENTO_CERTIFICADO'))->diffForHumans() }})</small>
+                                    Vence el <strong>{{ $afipCertificateExpiration->format('d/m/Y') }}</strong>
+                                    <small>({{ $afipCertificateExpiration->diffForHumans() }})</small>
                                 </div>
                             @endif
                         @else
@@ -322,7 +329,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Vencimiento</label>
-                                <input type="date" class="form-control" name="vencimiento" value="{{ variable_global('VENCIMIENTO_CERTIFICADO') }}" required />
+                                <input type="date" class="form-control" name="vencimiento" value="{{ $afipCertificateExpiration?->format('Y-m-d') }}" required />
                             </div>
                             <button class="btn btn-success w-100">Guardar certificado</button>
                         </form>

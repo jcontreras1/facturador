@@ -13,8 +13,23 @@ class ConfigController extends Controller
 {
     public function index(){
         $variables = VariableGlobal::all();
+        $afipKeyMissing = !is_file(afipDir().'key') || !is_readable(afipDir().'key');
+        $afipCertificateMissing = !is_file(afipDir().'cert') || !is_readable(afipDir().'cert');
+        $certificateContent = $afipCertificateMissing ? null : file_get_contents(afipDir().'cert');
+        $certificateData = $certificateContent === null ? false : @openssl_x509_parse($certificateContent);
+        $afipCertificateInvalid = !$afipCertificateMissing && $certificateData === false;
+        $afipCertificateExpiration = $certificateData
+            ? \Carbon\Carbon::createFromTimestamp($certificateData['validTo_time_t'])
+            : null;
+        $afipCredentialsMismatch = $certificateData && !$afipKeyMissing
+            && !@openssl_x509_check_private_key($certificateContent, file_get_contents(afipDir().'key'));
         return view('config.index')->with(compact([
             'variables',
+            'afipKeyMissing',
+            'afipCertificateMissing',
+            'afipCertificateInvalid',
+            'afipCertificateExpiration',
+            'afipCredentialsMismatch',
         ]));
     }
 

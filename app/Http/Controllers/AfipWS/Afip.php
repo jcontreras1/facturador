@@ -29,9 +29,9 @@ class Afip {
         
         $this->WSAA_URL = config('app.debug') === true ? "https://wsaahomo.afip.gov.ar/ws/services/LoginCms" : "https://wsaa.afip.gov.ar/ws/services/LoginCms";
         
-        if (!file_exists($this->CERT)) 
+        if (!is_file($this->CERT) || !is_readable($this->CERT))
         throw new Exception("No se puedo abrir el archivo: ".$this->CERT."\n");
-        if (!file_exists($this->PRIVATEKEY)) 
+        if (!is_file($this->PRIVATEKEY) || !is_readable($this->PRIVATEKEY))
         throw new Exception("No se puedo abrir el archivo: ".$this->PRIVATEKEY."\n");
         if (!file_exists($this->WSAA_WSDL)) 
         throw new Exception("No se puedo abrir el archivo: ".$this->WSAA_WSDL."\n");
@@ -72,18 +72,10 @@ class Afip {
             $TRA->asXML($this->TA_FOLDER.'TRA-'.$this->CUIT.'-'.$service.'.xml');
             
             //Parte 2 Firma el Ticket
-            $firma = openssl_pkcs7_sign(
+            $this->SignTicket(
                 $this->TA_FOLDER."TRA-".$this->CUIT.'-'.$service.".xml",
-                $this->TA_FOLDER."TRA-".$this->CUIT.'-'.$service.".tmp",
-                "file://".$this->CERT,
-                [
-                    "file://".$this->PRIVATEKEY, 
-                    $this->PASSPHRASE
-                ],
-                [],
-                !PKCS7_DETACHED
+                $this->TA_FOLDER."TRA-".$this->CUIT.'-'.$service.".tmp"
             );
-            if (!$firma) {return FALSE;}
             $inf = fopen($this->TA_FOLDER."TRA-".$this->CUIT.'-'.$service.".tmp", "r");
             $i = 0;
             $CMS="";
@@ -114,8 +106,36 @@ class Afip {
             else
             throw new Exception('Error writing "TA-'.$this->CUIT.'-'.$service.'.xml"', 5);
         }
-        
-        
+        protected function SignTicket(string $inputPath, string $outputPath): void
+        {
+            $certificate = @openssl_x509_read(file_get_contents($this->CERT));
+            if ($certificate === false) {
+                throw new Exception('El archivo afip_resources/cert no contiene un certificado PEM valido.');
+            }
+
+            $privateKey = @openssl_pkey_get_private(file_get_contents($this->PRIVATEKEY), $this->PASSPHRASE);
+            if ($privateKey === false) {
+                throw new Exception('No se pudo leer la clave privada PEM de afip_resources/key. Verifique su formato y contrasena.');
+            }
+
+            if (!openssl_x509_check_private_key($certificate, $privateKey)) {
+                throw new Exception('El certificado afip_resources/cert no corresponde a la clave privada afip_resources/key. Instale el par de certificado y clave correspondiente antes de solicitar acceso a ARCA.');
+            }
+
+            while (openssl_error_string() !== false) {
+                // Descartar errores anteriores para informar solo los de esta firma.
+            }
+
+            if (!@openssl_pkcs7_sign($inputPath, $outputPath, $certificate, $privateKey, [], 0)) {
+                $errors = [];
+                while (($error = openssl_error_string()) !== false) {
+                    $errors[] = $error;
+                }
+
+                throw new Exception('No se pudo firmar el ticket de acceso a ARCA con los archivos de afip_resources. '.implode(' ', $errors));
+            }
+        }
+
         public function WebService($service, $options)
         {
             $options['service'] = $service;

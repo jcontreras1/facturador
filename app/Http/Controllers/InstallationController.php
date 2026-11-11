@@ -36,7 +36,7 @@ class InstallationController extends Controller
         }
         
         if (!is_dir(afipDir())) {
-            if (!mkdir(afipDir(), 0644, true)) {
+            if (!mkdir(afipDir(), 0755, true)) {
                 toast('Error al crear la carpeta para la clave privada', 'error');
                 return redirect()->back();
             }
@@ -50,13 +50,6 @@ class InstallationController extends Controller
             return redirect()->back();
         }
         
-        VariableGlobal::updateOrCreate([
-            'clave' => 'AFIP_KEY',
-            'descripcion' => 'Clave privada para AFIP'
-        ], [
-            'valor' => $privateKey
-        ]);
-        
         toast('Clave privada generada con éxito', 'success');
         return redirect()->back();
     }
@@ -68,9 +61,14 @@ class InstallationController extends Controller
             return redirect()->back();
         }
         // Verifica que la clave privada esté generada
-        $privateKey = variable_global('AFIP_KEY');
-        if (!$privateKey || $privateKey == "") {
-            toast('Primero debe generar la clave privada', 'error');
+        $keyPath = afipDir() . 'key';
+        if (!is_file($keyPath) || !is_readable($keyPath)) {
+            toast('Primero debe generar o instalar la clave privada en afip_resources/key', 'error');
+            return redirect()->back();
+        }
+        $privateKey = @openssl_pkey_get_private(file_get_contents($keyPath));
+        if ($privateKey === false) {
+            toast('El archivo afip_resources/key no contiene una clave privada PEM valida sin contrasena', 'error');
             return redirect()->back();
         }
         // Verifica que exista la cuit
@@ -138,6 +136,15 @@ class InstallationController extends Controller
                 toast('El certificado otorgado no es válido.', 'error');
                 return redirect()->back();
             }
+
+            $keyPath = afipDir() . 'key';
+            $privateKey = is_file($keyPath) && is_readable($keyPath)
+                ? @openssl_pkey_get_private(file_get_contents($keyPath))
+                : false;
+            if ($privateKey === false || !openssl_x509_check_private_key($certContent, $privateKey)) {
+                toast('El certificado no corresponde a la clave privada de afip_resources/key. Cargue el certificado emitido para esa clave.', 'error');
+                return redirect()->back();
+            }
             
             if ($certFile->move(afipDir(), 'cert')) {
                 toast('Certificado cargado con éxito', 'success');
@@ -146,12 +153,6 @@ class InstallationController extends Controller
                 return redirect()->back();
             }
 
-            VariableGlobal::updateOrCreate([
-                'clave' => 'AFIP_CERTIFICADO',
-            ], [
-                'valor' => $certContent,
-            ]);
-            
             VariableGlobal::updateOrCreate([
                 'clave' => 'VENCIMIENTO_CERTIFICADO',
             ], [
