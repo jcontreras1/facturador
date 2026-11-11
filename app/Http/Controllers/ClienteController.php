@@ -19,7 +19,7 @@ class ClienteController extends Controller
 {
     public function index(){
         
-        $clientes = Cliente::orderBy('nombre', 'asc')->get();
+        $clientes = Cliente::with('condicionIva')->orderBy('nombre', 'asc')->get();
         return view('clientes.index')->with(compact(['clientes']));
     }
     

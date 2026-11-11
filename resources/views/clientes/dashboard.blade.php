@@ -9,7 +9,12 @@
                 <small class="text-muted fs-5"><em>{{$cliente->tipo_documento}} {{ $cliente->cuit }} - {{$cliente->condicionIva?->descripcion}}</em></small>
             </h3>
             <div>
-                <a href="{{route('cliente.comprobante.create.c', $cliente)}}" class="btn btn-success"><i class="fas fa-file-invoice"></i> Nueva Factura C</a>
+                @php($tipoFactura = tipo_factura_para_receptor($cliente->condicionIva))
+                @if($tipoFactura)
+                <a href="{{route('cliente.comprobante.create.'.strtolower($tipoFactura), $cliente)}}" class="btn btn-success"><i class="fas fa-file-invoice"></i> Nueva Factura {{$tipoFactura}}</a>
+                @else
+                <span class="text-danger">Revisá la condición de IVA del emisor y del cliente para facturar.</span>
+                @endif
                 <a href="{{route('clientes.edit', $cliente)}}" class="btn btn-warning"><i class="fas fa-edit"></i> Editar</a>
                 <a href="{{route('clientes.index')}}" class="btn btn-primary"><i class="fas fa-chevron-left"></i></a>
             </div>

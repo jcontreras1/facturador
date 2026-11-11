@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Negocio\Comprobante\Factura;
 
 use App\Http\Controllers\AfipWS\Afip;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFacturaRequest;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\DetalleComprobante;
 use App\Models\Arca\IvaReceptor;
@@ -15,9 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class CController extends Controller
 {
-    public function store(Request $request){
+    public function store(StoreFacturaRequest $request){
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
-        $afip = new Afip();
+        $condicionIvaReceptor = IvaReceptor::findOrFail($request->condicionIva);
+        $afip = app(Afip::class);
         $cliente = $request->has('cliente') && $request->cliente ? $request->cliente : null;
         DB::beginTransaction();
         try {
@@ -68,7 +70,7 @@ class CController extends Controller
                 'Concepto' => intval($request->concepto),
                 'DocTipo' => intval($request->tipoDocumentoId),
                 'DocNro' => $request->documento ? intval($request->documento) : 0,
-                'CondicionIVAReceptorId' => intval($request->condicionIva),
+                'CondicionIVAReceptorId' => intval($condicionIvaReceptor->codigo_afip),
                 'CbteDesde' => $numeroComprobante,
                 'CbteHasta' => $numeroComprobante,
                 'CbteFch' => intval(str_replace('-', '', $request->fecha)),
@@ -119,6 +121,10 @@ class CController extends Controller
         array $lineasAdicionales = []): Comprobante | Exception{
 
             // throw new Exception('Error en la facturación mensual. Cliente: ' . $cliente->nombre . ', Periodo Desde: ' . $periodoDesde . ', Periodo Hasta: ' . $periodoHasta . ', Periodo Vencimiento: ' . $periodoVencimiento);
+
+        if (!emisor_puede_emitir_factura('C')) {
+            throw new Exception('La facturacion mensual C solo esta disponible para emisores monotributistas.');
+        }
 
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first(); // Obtener tipo de comprobante 'C'
         $afip = new Afip();
@@ -254,6 +260,7 @@ class CController extends Controller
         return $comprobante;
     }
     public function storeLoteFacturasC(Request $request){
+        abort_unless(emisor_puede_emitir_factura('C'), 403);
         $tipoComprobante = TipoComprobante::where('codigo', 'C')->first();
         $afip = new Afip();
         DB::beginTransaction();

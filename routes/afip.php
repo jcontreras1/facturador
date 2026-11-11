@@ -27,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('comprobante/a', [ComprobanteController::class, 'createFacturaA'])->name('comprobante.create.a');
     Route::post('/comprobantes/c', [CController::class, 'storeLoteFacturasC'])->name('lote.store.c');
     Route::get('/cliente/{cliente}/comprobante/c', [ComprobanteController::class, 'createFacturaCCliente'])->name('cliente.comprobante.create.c');
+    Route::get('/cliente/{cliente}/comprobante/a', [ComprobanteController::class, 'createFacturaA'])->name('cliente.comprobante.create.a');
+    Route::get('/cliente/{cliente}/comprobante/b', [ComprobanteController::class, 'createFacturaB'])->name('cliente.comprobante.create.b');
     // Route::post('/comprobante/c', [FacturaBController::class, 'facturar'])->name('comprobante.store.c');
     
         Route::get('/test', [ContribuyenteController::class, 'padronv4']);

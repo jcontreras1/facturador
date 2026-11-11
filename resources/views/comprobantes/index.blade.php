@@ -11,7 +11,7 @@
             <a href="{{ route('comprobante.create.c') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Nueva Factura C
             </a>
-            @else
+            @elseif(emisor_puede_emitir_factura('A'))
             <a href="{{ route('comprobante.create.a') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Factura A
             </a>

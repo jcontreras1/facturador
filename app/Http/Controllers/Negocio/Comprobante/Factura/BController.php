@@ -4,23 +4,23 @@ namespace App\Http\Controllers\Negocio\Comprobante\Factura;
 
 use App\Http\Controllers\AfipWS\Afip;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFacturaRequest;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\DetalleComprobante;
 use App\Models\Arca\Iva;
 use App\Models\Arca\IvaReceptor;
 use App\Models\Arca\TipoComprobante;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreFacturaRequest $request)
     {
         $tipoComprobante = TipoComprobante::where('codigo', 'B')->first();
-        $condicionIvaReceptor = IvaReceptor::find($request->condicionIva);
-        $afip = new Afip();
+        $condicionIvaReceptor = IvaReceptor::findOrFail($request->condicionIva);
+        $afip = app(Afip::class);
         $cliente = $request->has('cliente') && $request->cliente ? $request->cliente : null;
 
         DB::beginTransaction();
@@ -72,7 +72,7 @@ class BController extends Controller
                 'Concepto' => intval($request->concepto),
                 'DocTipo' => intval($request->tipoDocumentoId),
                 'DocNro' => $request->documento ? intval($request->documento) : 0,
-                'CondicionIVAReceptorId' => intval($condicionIvaReceptor?->codigo_afip ?? 5),
+                'CondicionIVAReceptorId' => intval($condicionIvaReceptor->codigo_afip),
                 'CbteDesde' => $numeroComprobante,
                 'CbteHasta' => $numeroComprobante,
                 'CbteFch' => intval(str_replace('-', '', $request->fecha)),

@@ -21,30 +21,38 @@ class ComprobanteController extends Controller
     ]);
 }
 
-public function createFacturaA(){
-    //Solo autorizados por Factura A
-    $condicionesIva = IvaReceptor::whereIn('codigo_afip', ['1','6','13','16'])->get();
-    return view('comprobantes.createFacturaA', with([
-        'condicionesIva' => $condicionesIva,
-        'ivas' => Iva::all(),
-    ]));
+public function createFacturaA(?Cliente $cliente = null){
+    return $this->createFactura('A', $cliente);
 }
 
-public function createFacturaB(){
-    $condicionesIva = IvaReceptor::all();
-    return view('comprobantes.createFacturaB', with([
-        'condicionesIva' => $condicionesIva,
-        'ivas' => Iva::all(),
-    ]));
+public function createFacturaB(?Cliente $cliente = null){
+    return $this->createFactura('B', $cliente);
 }
 public function createFacturaC(){
-    $condicionesIva = IvaReceptor::all();
-    return view('comprobantes.createFacturaC', with([
+    return $this->createFactura('C');
+}
+
+private function createFactura(string $tipo, ?Cliente $cliente = null){
+    abort_unless(emisor_puede_emitir_factura($tipo), 403, 'La condicion de IVA del emisor no permite este tipo de factura.');
+    if ($cliente) {
+        abort_unless(tipo_factura_para_receptor($cliente->condicionIva) === $tipo, 403, 'El tipo de factura no corresponde al cliente.');
+    }
+
+    $condicionesIva = match ($tipo) {
+        'A' => IvaReceptor::whereIn('codigo_afip', IvaReceptor::CODIGOS_FACTURA_A)->get(),
+        'B' => IvaReceptor::whereIn('codigo_afip', IvaReceptor::CODIGOS_FACTURA_B)->get(),
+        'C' => IvaReceptor::all(),
+    };
+
+    return view('comprobantes.createFactura'.$tipo, [
         'condicionesIva' => $condicionesIva,
-    ]));
+        'ivas' => Iva::all(),
+        'cliente' => $cliente,
+    ]);
 }
 
 public function createLoteFacturasC(){
+    abort_unless(emisor_puede_emitir_factura('C'), 403);
     $condicionesIva = IvaReceptor::all();
     return view('comprobantes.createLoteFacturasC', with([
         'condicionesIva' => $condicionesIva,
@@ -52,11 +60,7 @@ public function createLoteFacturasC(){
 }
 
 public function createFacturaCCliente(Cliente $cliente){
-    $condicionesIva = IvaReceptor::all();
-    return view('comprobantes.createFacturaC', with([
-        'condicionesIva' => $condicionesIva,
-        'cliente' => $cliente,
-    ]));
+    return $this->createFactura('C', $cliente);
 }
 
 public function descargarPdf(Comprobante $comprobante){

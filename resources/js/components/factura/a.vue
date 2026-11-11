@@ -101,7 +101,7 @@
           </div>
           <div class="col-12 col-md-1">
             <label for="precioUnitario{{ index }}">$ Unit.</label>
-            <input type="number" v-model="linea.precioUnitario" class="form-control form-control-sm" @input="calcularSubtotal(index)" min="0" step="0.01" required>
+            <ImporteInput v-model="linea.precioUnitario" class="form-control form-control-sm" @update:model-value="calcularSubtotal(index)" required />
           </div>
           <div class="col-12 col-md-1">
             <label for="bonificacion{{ index }}">% Bonif.</label>
@@ -109,13 +109,13 @@
           </div>
           <div class="col-12 col-md-1">
             <label for="importeBonificado{{ index }}">$ Bonif.</label>
-            <input type="number" v-model="linea.importeBonificado" class="form-control form-control-sm" step="0.01" disabled readonly>
+            <ImporteInput :model-value="linea.importeBonificado" class="form-control form-control-sm" disabled readonly />
           </div>
           
           
           <div class="col-12 col-md-1">
             <label for="subtotal{{ index }}">Subtotal</label>
-            <input type="number" v-model="linea.subtotal" class="form-control form-control-sm" step="0.01" readonly disabled>
+            <ImporteInput :model-value="linea.subtotal" class="form-control form-control-sm" readonly disabled />
           </div>
           
           <div class="col-12 col-md-1">
@@ -126,7 +126,7 @@
           </div>
           <div class="col-12 col-md-2">
             <label for="subtotalConIva{{ index }}">Subtotal con IVA</label>
-            <input type="number" v-model="linea.subtotalConIva" class="form-control form-control-sm" step="0.01" readonly disabled>
+            <ImporteInput :model-value="linea.subtotalConIva" class="form-control form-control-sm" readonly disabled />
           </div>
           
           <div class="col-12 col-md-1 d-flex align-items-end">
@@ -157,6 +157,7 @@
 import { ref, reactive, computed, defineProps, onMounted } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import ImporteInput from '../ImporteInput.vue'
 
 const props = defineProps({
   condicionesIva: Object,

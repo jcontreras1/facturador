@@ -102,7 +102,7 @@
             </div>
             <div class="col-12 col-md-2">
               <label for="precioUnitario{{ index }}">Precio Unit.</label>
-              <input type="number" v-model="linea.precioUnitario" class="form-control" @input="calcularSubtotal(index)" min="0" step="0.01" required>
+              <ImporteInput v-model="linea.precioUnitario" class="form-control" @update:model-value="calcularBonificacion(index)" required />
             </div>
             <div class="col-12 col-md-1">
               <label for="bonificacion{{ index }}">% Bonif.</label>
@@ -110,11 +110,11 @@
             </div>
             <div class="col-12 col-md-1">
               <label for="importeBonificado{{ index }}">$ Bonif.</label>
-              <input type="number" v-model="linea.importeBonificado" class="form-control" step="0.01" readonly>
+              <ImporteInput :model-value="linea.importeBonificado" class="form-control" readonly />
             </div>
             <div class="col-12 col-md-2">
               <label for="subtotal{{ index }}">Subtotal</label>
-              <input type="number" v-model="linea.subtotal" class="form-control" step="0.01" readonly>
+              <ImporteInput :model-value="linea.subtotal" class="form-control" readonly />
             </div>
             <div class="col-12 col-md-1 ">
               <label class="">&nbsp; </label><br>
@@ -140,6 +140,7 @@
 import { ref, reactive, computed, defineProps, onMounted } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import ImporteInput from '../ImporteInput.vue'
 
 const props = defineProps({
   condicionesIva: Object,

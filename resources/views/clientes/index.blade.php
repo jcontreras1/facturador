@@ -36,8 +36,9 @@
                         </td>
 
                         <td>
-                            @if(esMonotributista())
-                            <a href="{{route('cliente.comprobante.create.c', $cliente)}}" title="Nueva factura C" class="btn btn-success btn-sm"><i class="far fa-file-alt"></i></a>
+                            @php($tipoFactura = tipo_factura_para_receptor($cliente->condicionIva))
+                            @if($tipoFactura)
+                            <a href="{{route('cliente.comprobante.create.'.strtolower($tipoFactura), $cliente)}}" title="Nueva factura {{$tipoFactura}}" class="btn btn-success btn-sm"><i class="far fa-file-alt"></i> {{$tipoFactura}}</a>
                             @endif
                             <a href="{{route('clientes.edit', $cliente->id)}}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
                             <a href="{{route('clientes.dashboard', $cliente->id)}}" class="btn btn-primary btn-sm"><i class="fas fa-list"></i></a>

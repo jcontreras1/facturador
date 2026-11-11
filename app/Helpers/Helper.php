@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Arca\Comprobante;
+use App\Models\Arca\IvaReceptor;
 use App\Models\Factura;
 use App\Models\VariableGlobal;
 use Illuminate\Support\Facades\Request;
@@ -213,6 +214,34 @@ function imgBase64QRFactura(Comprobante $comprobante){
 // Functión para determinar si el usuario logeado es monotributista
 function esMonotributista(){
 	return str_contains(strtolower(variable_global('CONDICION_IVA')), 'monotrib');
+}
+
+function emisor_puede_emitir_factura(string $tipo): bool
+{
+	if (esMonotributista()) {
+		return $tipo === 'C';
+	}
+
+	return in_array(strtolower(trim(variable_global('CONDICION_IVA'))), [
+		'iva responsable inscripto', 'responsable inscripto',
+	], true) && in_array($tipo, ['A', 'B'], true);
+}
+
+function tipo_factura_para_receptor(?IvaReceptor $receptor): ?string
+{
+	if (emisor_puede_emitir_factura('C')) {
+		return 'C';
+	}
+
+	if (!$receptor || !emisor_puede_emitir_factura('A')) {
+		return null;
+	}
+
+	return match (true) {
+		in_array((int) $receptor->codigo_afip, IvaReceptor::CODIGOS_FACTURA_A, true) => 'A',
+		in_array((int) $receptor->codigo_afip, IvaReceptor::CODIGOS_FACTURA_B, true) => 'B',
+		default => null,
+	};
 }
 
 function transformarFechaAfip($fecha_afip){

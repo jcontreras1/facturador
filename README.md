@@ -133,6 +133,19 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
 - La pantalla de configuración consulta los archivos y obtiene el vencimiento del propio certificado. Al cargar un certificado se verifica que corresponda a la clave instalada.
 - El proceso PHP necesita permiso de lectura sobre ambos archivos y escritura en `afip_resources` para los tickets de acceso. Esta carpeta contiene credenciales privadas: no debe publicarse ni agregarse a Git.
 
+## Tipo de factura según la condición de IVA
+
+- Un emisor monotributista emite únicamente facturas C, cualquiera sea la condición de IVA del receptor.
+- Un emisor responsable inscripto emite facturas A para responsables inscriptos y monotributistas (incluidas las categorías social y trabajador independiente promovido), y B para exentos y consumidores finales. Las restantes categorías de receptor B/C conservan la factura B.
+- El listado y el panel de clientes muestran únicamente la factura correspondiente. Los formularios y la API también validan estas restricciones y la condición de IVA del cliente seleccionado.
+- La facturación mensual automática y por monto continúa siendo de tipo C y solo está disponible para emisores monotributistas.
+
+## Formato de importes al facturar
+
+En los comprobantes A, B y C, el precio unitario se formatea mientras se escribe: `1234` se muestra como `1.234`, y tanto `1234.2` como `1234,2` se muestran como `1.234,2`. Se pueden pegar importes como `1.234,20` o `1234.20`. Los importes bonificados y subtotales, con y sin IVA, se muestran con dos decimales en formato argentino. Los cálculos y los datos enviados a la API mantienen valores numéricos sin separadores de miles.
+
+Las pruebas del formato se ejecutan con `node --test tests/js/importes.test.js`.
+
 ## Pruebas automáticas (entorno seguro)
 
 - Las pruebas (`php artisan test`) están configuradas para usar **solo** SQLite en memoria (`:memory:`), sin usar archivos de base de datos en disco.

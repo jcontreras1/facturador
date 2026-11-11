@@ -54,16 +54,16 @@
 
         $condicionIvaOptions = [
             'IVA Responsable Inscripto',
-            'IVA Responsable No Inscripto',
-            'IVA Exento',
-            'IVA No Responsable',
-            'IVA Sujeto Exento',
-            'Consumidor Final',
+            //'IVA Responsable No Inscripto',
+            //'IVA Exento',
+            //'IVA No Responsable',
+            //'IVA Sujeto Exento',
+            //'Consumidor Final',
             'Responsable Monotributo',
-            'Sujeto No Categorizado',
-            'Proveedor del Exterior',
-            'Cliente del Exterior',
-            'IVA Liberado – Ley Nº 19.640',
+            //'Sujeto No Categorizado',
+            //'Proveedor del Exterior',
+            //'Cliente del Exterior',
+            //'IVA Liberado – Ley Nº 19.640',
         ];
 
         $impresoraOptions = ['AMBAS', 'TERMICA', 'A4'];
