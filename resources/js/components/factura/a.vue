@@ -55,7 +55,7 @@
           </div>
           <div class="col-12 col-md-3">
             <label for="tipoDocumentoId">Tipo de Cliente</label>
-            <select :disabled="clienteFijo" v-model="form.tipoDocumentoId" @change="handletipoDocumentoIdChange" class="form-select" required>
+            <select :disabled="clienteFijo" v-model="form.tipoDocumentoId" class="form-select" required>
               <option value="80">CUIT</option>
               <option value="86">CUIL</option>
               <!-- <option value="96">DNI</option> -->
@@ -76,6 +76,7 @@
             <input type="text" v-model="form.domicilio" class="form-control" readonly>
           </div>
         </div>
+        <AgregarCliente v-if="mostrarAgregarCliente" v-model="form.agregarComoCliente" />
       </div>
     </div>
     
@@ -160,6 +161,8 @@ import { ref, reactive, computed, defineProps, onMounted } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import ImporteInput from '../ImporteInput.vue'
+import AgregarCliente from './AgregarCliente.vue'
+import { useClienteFactura } from '../../utils/clienteFactura.js'
 import { emisionEnCurso, iniciarEmisionComprobante, finalizarEmisionComprobante } from '../../utils/emisionComprobante.js'
 
 const props = defineProps({
@@ -195,7 +198,6 @@ const form = reactive({
 
 const lineas = ref([])
 const unidadesDeMedida = ['unidad', 'metros', 'kilos', 'litros']
-const isLoading = ref(false)
 const roundAmount = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100
 
 // Propiedad computada para el importe total
@@ -220,30 +222,7 @@ const clienteFijo = computed(() => {
   return props.cliente && props.cliente.cuit !== "";
 })
 
-// Obtiene los datos extras del contribuyente
-const onDocumentoFocusOut = async () => {
-  
-  if (invalidDocument.value || emisionEnCurso.value) {
-    return;
-  }
-  isLoading.value = true
-  
-  let url = `/api/contribuyente/${form.documento}?tipo=cuit`;
-    try {
-    const response = await axios.get(url)
-    form.razonSocial = response.data.razonSocial
-    form.domicilio = response.data.domicilio
-  } catch (error) {
-    let msgError = error.response.data.error ?? 'No se encontró el usuario con el documento ingresado.';
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: msgError,
-    })
-  } finally {
-    isLoading.value = false
-  }
-}
+const { isLoading, mostrarAgregarCliente, onDocumentoFocusOut } = useClienteFactura(form, props, invalidDocument)
 
 const calcularSubtotal = (index) => {
   calcularBonificacion(index)
@@ -329,10 +308,11 @@ onMounted(() => {
   }
 });
 
-const submitForm = () => {
-  if (emisionEnCurso.value || isLoading.value) {
+const submitForm = async () => {
+  if (emisionEnCurso.value || isLoading.value || invalidDocument.value) {
     return
   }
+  if (!await onDocumentoFocusOut()) return
   
   form.importeTotal = importeTotal.value;
   form.importeNeto = importeTotal.value;

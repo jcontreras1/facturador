@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\TipoComprobante;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
 
 
@@ -37,10 +38,21 @@ class ContribuyenteController extends Controller
         
     }
     public function infoContribuyente(Request $request, $doc){
+        $doc = preg_replace('/\D/', '', $doc);
         if(trim($doc) == ''){
             return response(['error' => 'Debe ingresar un número de documento'], 400);
         }
-        $afip = new Afip();
+        $tipoDocumento = $request->input('tipo') === 'dni' || (!$request->has('tipo') && strlen($doc) !== 11) ? 96 : 80;
+        $cliente = $request->boolean('buscarCliente') ? Cliente::porDocumento($doc, $tipoDocumento)->first() : null;
+        if ($cliente) {
+            return response([
+                'razonSocial' => $cliente->nombre,
+                'domicilio' => $cliente->direccion,
+                'cliente' => $cliente->only(['id', 'condicion_iva_receptor_id']),
+            ], 200);
+        }
+
+        $afip = app(Afip::class);
         $contribuyente = null;
         if($request->tipo == 'dni'){
             try {
@@ -83,6 +95,6 @@ class ContribuyenteController extends Controller
             return response(['error' => 'No se encontraron datos para el ' . $tipoDoc . ' ingresado'], 404);
         }
         return 
-        response(datosContribuyente(contribuyenteObject: $contribuyente), 200);
+        response(array_merge(datosContribuyente(contribuyenteObject: $contribuyente), ['cliente' => null]), 200);
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Arca\DetalleComprobante;
 use App\Models\Arca\Iva;
 use App\Models\Arca\IvaReceptor;
 use App\Models\Arca\TipoComprobante;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 
@@ -19,10 +20,10 @@ class AController extends Controller
         $tipoComprobante = TipoComprobante::where('codigo', 'A')->first();
         $condicionIvaReceptor = IvaReceptor::findOrFail($request->condicionIva);
         $afip = app(Afip::class);
-        $cliente = $request->clienteParaComprobante();
 
         DB::beginTransaction();
         try {
+            $cliente = $request->clienteParaComprobante();
             $puntoVenta = variable_global('PUNTO_VENTA');
             
             $comprobante = Comprobante::create([

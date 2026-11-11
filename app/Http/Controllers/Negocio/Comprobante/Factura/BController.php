@@ -21,10 +21,10 @@ class BController extends Controller
         $tipoComprobante = TipoComprobante::where('codigo', 'B')->first();
         $condicionIvaReceptor = IvaReceptor::findOrFail($request->condicionIva);
         $afip = app(Afip::class);
-        $cliente = $request->clienteParaComprobante();
 
         DB::beginTransaction();
         try {
+            $cliente = $request->clienteParaComprobante();
             $puntoVenta = variable_global('PUNTO_VENTA');
 
             $comprobante = Comprobante::create([

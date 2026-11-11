@@ -144,6 +144,10 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
 
 La página de clientes permite buscar por razón social, CUIT o email. Los resultados se ordenan alfabéticamente y se muestran de a 20 por página, conservando la búsqueda al navegar. El botón **Limpiar** vuelve al listado completo.
 
+## Listado de comprobantes
+
+El listado permite combinar la búsqueda por número exacto (con o sin ceros iniciales) y un rango de fechas de emisión inclusivo. Para comprobantes antiguos sin fecha de emisión se usa la fecha de registro, tanto en el filtro como en la columna Fecha. Si hay comprobantes de distintos tipos, se muestra un selector con los tipos registrados, incluidas las notas de crédito. La paginación muestra 16 comprobantes por página y conserva los filtros al navegar. El botón **Limpiar** vuelve al listado completo.
+
 ## Emisión de comprobantes
 
 Al confirmar una factura A, B o C, o una nota de crédito desde la anulación de un comprobante, se muestra un spinner que bloquea la interacción con la página y evita envíos repetidos mientras se procesa la solicitud. Si la emisión falla, se muestra el error y se permite volver a intentar.
@@ -152,7 +156,7 @@ La anulación genera una nota de crédito de la misma letra que la factura: A (c
 
 Para emisores responsables inscriptos, el administrador puede elegir una **Alícuota de IVA predeterminada** en Configuraciones. Se aplica a cada nueva línea de las facturas A y B, con o sin cliente seleccionado. Sin un valor predeterminado, el campo muestra **Seleccionar** y es obligatorio elegir una alícuota en cada línea; los campos pendientes se marcan como inválidos al intentar emitir. La variable `IVA_PREDETERMINADO` se incluye vacía en el seeder general y también puede guardarse desde configuración en instalaciones existentes sin volver a ejecutar el seeder.
 
-Al emitir una factura A, B o C con tipo de documento CUIT, si ese CUIT ya pertenece a un cliente registrado, el comprobante se vincula automáticamente a ese cliente. Así aparece tanto en el listado general con su referencia como en el panel del cliente. No se vinculan automáticamente los DNI ni los consumidores finales, y se respeta el cliente elegido explícitamente.
+Al salir del campo CUIT, CUIL o DNI (por ejemplo, con TAB), las facturas A, B y C buscan primero al cliente en la base local y completan sus datos sin consultar ARCA. Solo si no existe se consulta el padrón. Para un receptor nuevo aparece la casilla **Agregar como cliente**, desmarcada por defecto: al emitir se vuelve a verificar que no exista, se guarda con sus datos y se vincula la factura. Si la emisión falla, tampoco se guarda el cliente. Los documentos existentes se vinculan automáticamente, se respeta el cliente elegido explícitamente y no se crean clientes para consumidores finales sin documento.
 
 ## Formato de importes al facturar
 

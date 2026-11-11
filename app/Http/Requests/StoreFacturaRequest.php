@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Arca\IvaReceptor;
 use App\Models\Cliente;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreFacturaRequest extends FormRequest
@@ -28,7 +29,19 @@ class StoreFacturaRequest extends FormRequest
         $rules = [
             'condicionIva' => ['required', 'integer', 'exists:condicion_iva_receptor,id'],
             'cliente' => ['nullable', 'integer', 'exists:clientes,id'],
+            'agregarComoCliente' => ['sometimes', 'boolean'],
         ];
+
+        if ($this->boolean('agregarComoCliente')) {
+            $rules['tipoDocumentoId'] = ['required', 'integer', Rule::in([80, 86, 96])];
+            $rules['documento'] = [
+                'required',
+                'string',
+                $this->integer('tipoDocumentoId') === 96 ? 'regex:/^[0-9]{7,8}$/' : 'regex:/^[0-9]{11}$/',
+            ];
+            $rules['razonSocial'] = ['required', 'string', 'max:255'];
+            $rules['domicilio'] = ['nullable', 'string', 'max:255'];
+        }
 
         if (in_array($this->tipoFactura(), ['A', 'B'], true)) {
             $rules['lineas'] = ['required', 'array', 'min:1'];
@@ -36,6 +49,13 @@ class StoreFacturaRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (is_scalar($this->input('documento'))) {
+            $this->merge(['documento' => preg_replace('/[\s.\-]/', '', (string) $this->input('documento'))]);
+        }
     }
 
     public function messages(): array
@@ -53,11 +73,22 @@ class StoreFacturaRequest extends FormRequest
         }
 
         $documento = preg_replace('/\D/', '', (string) $this->input('documento'));
-        if ($this->integer('tipoDocumentoId') !== 80 || strlen($documento) !== 11) {
+        $tipoDocumento = $this->integer('tipoDocumentoId');
+        if (!in_array($tipoDocumento, [80, 86, 96], true) || $documento === '') {
             return null;
         }
 
-        return Cliente::where('cuit', $documento)->first();
+        $cliente = Cliente::porDocumento($documento, $tipoDocumento)->first();
+        if ($cliente || !$this->boolean('agregarComoCliente')) {
+            return $cliente;
+        }
+
+        return Cliente::firstOrCreate(['cuit' => $documento], [
+            'nombre' => $this->input('razonSocial'),
+            'direccion' => $this->input('domicilio'),
+            'tipo_documento_afip' => $tipoDocumento,
+            'condicion_iva_receptor_id' => $this->input('condicionIva'),
+        ]);
     }
 
     public function after(): array

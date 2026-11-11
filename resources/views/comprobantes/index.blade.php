@@ -21,8 +21,44 @@
             @endif
         </x-title>
         
+        <form method="GET" action="{{ route('comprobantes.index') }}" class="row g-2 mb-3 align-items-end">
+            @if($tiposComprobante->count() > 1)
+            <div class="col-12 col-md-3">
+                <label for="tipo_comprobante_id" class="form-label">Tipo de comprobante</label>
+                <select id="tipo_comprobante_id" name="tipo_comprobante_id" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    @foreach($tiposComprobante as $tipo)
+                    <option value="{{ $tipo->id }}" @selected(($valoresFiltros['tipo_comprobante_id'] ?? '') == $tipo->id)>{{ $tipo->descripcion }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+            <div class="col-12 col-md-2">
+                <label for="numero" class="form-label">Número</label>
+                <input type="search" id="numero" name="numero" class="form-control" inputmode="numeric" maxlength="8"
+                    placeholder="Ej.: 00000123" value="{{ $valoresFiltros['numero'] ?? '' }}">
+            </div>
+            <div class="col-12 col-md-2">
+                <label for="fecha_desde" class="form-label">Emitido desde</label>
+                <input type="date" id="fecha_desde" name="fecha_desde" class="form-control" value="{{ $valoresFiltros['fecha_desde'] ?? '' }}">
+            </div>
+            <div class="col-12 col-md-2">
+                <label for="fecha_hasta" class="form-label">Emitido hasta</label>
+                <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control" value="{{ $valoresFiltros['fecha_hasta'] ?? '' }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                <a href="{{ route('comprobantes.index') }}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+            @foreach(['tipo_comprobante_id', 'numero', 'fecha_desde', 'fecha_hasta'] as $campo)
+                @error($campo)
+                <div class="col-12 text-danger" role="alert">{{ $message }}</div>
+                @enderror
+            @endforeach
+        </form>
+
         @if(count($comprobantes) == 0)
-        <em>No hay comprobantes para mostrar</em>
+        <em>{{ collect($filtros)->filter(fn ($valor) => filled($valor))->isNotEmpty() ? 'No se encontraron comprobantes para la búsqueda.' : 'No hay comprobantes para mostrar' }}</em>
         @else
         <table class="table table-striped">
             <thead>
@@ -45,7 +81,7 @@
                         @endif
                     </td>
                     <td>{{ $comprobante->nro_comprobante ? str_pad($comprobante->nro_comprobante, 8, '0', STR_PAD_LEFT) : 'S/N' }}</td>
-                    <td>{{ $comprobante->created_at->format('d/m/Y H:i') }}</td>
+                    <td>{{ \Illuminate\Support\Carbon::parse($comprobante->fecha_emision ?? $comprobante->created_at)->format('d/m/Y') }}</td>
                     <td>
                         @if($comprobante->cliente)
                         <i class="fas fa-user text-warning"></i>&nbsp;

@@ -7,6 +7,7 @@ use App\Mail\NuevoComprobante;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\Iva;
 use App\Models\Arca\IvaReceptor;
+use App\Models\Arca\TipoComprobante;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -15,11 +16,42 @@ use Illuminate\Support\Facades\Mail;
 
 class ComprobanteController extends Controller
 {
-    public function index(){
-        $comprobantes = Comprobante::with(['tipoComprobante', 'cliente'])->orderBy('id', 'desc')->cursorPaginate(16);
-        return view('comprobantes.index')->with(['comprobantes' => $comprobantes
-    ]);
-}
+    public function index(Request $request){
+        $filtros = $request->validate([
+            'tipo_comprobante_id' => ['nullable', 'integer', 'exists:tipo_comprobante,id'],
+            'numero' => ['nullable', 'regex:/^[0-9]{1,8}$/'],
+            'fecha_desde' => ['nullable', 'date_format:Y-m-d'],
+            'fecha_hasta' => [
+                'nullable',
+                'date_format:Y-m-d',
+                $request->filled('fecha_desde') ? 'after_or_equal:fecha_desde' : 'nullable',
+            ],
+        ]);
+
+        $tiposComprobante = TipoComprobante::whereIn(
+            'id', Comprobante::select('tipo_comprobante_id')->distinct()
+        )->orderBy('descripcion')->get();
+
+        $query = Comprobante::with(['tipoComprobante', 'cliente']);
+
+        if (!empty($filtros['tipo_comprobante_id'])) {
+            $query->where('tipo_comprobante_id', $filtros['tipo_comprobante_id']);
+        }
+        if (isset($filtros['numero'])) {
+            $query->where('nro_comprobante', ltrim($filtros['numero'], '0') ?: '0');
+        }
+        if (!empty($filtros['fecha_desde'])) {
+            $query->whereRaw('COALESCE(fecha_emision, DATE(created_at)) >= ?', [$filtros['fecha_desde']]);
+        }
+        if (!empty($filtros['fecha_hasta'])) {
+            $query->whereRaw('COALESCE(fecha_emision, DATE(created_at)) <= ?', [$filtros['fecha_hasta']]);
+        }
+
+        $comprobantes = $query->orderBy('id', 'desc')->cursorPaginate(16)->withQueryString();
+        $valoresFiltros = array_filter($request->old() ?: $filtros, 'is_scalar');
+
+        return view('comprobantes.index', compact('comprobantes', 'tiposComprobante', 'filtros', 'valoresFiltros'));
+    }
 
 public function createFacturaA(?Cliente $cliente = null){
     return $this->createFactura('A', $cliente);

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Arca\Comprobante;
 use App\Models\Arca\IvaReceptor;
 use App\Models\Arca\TipoDocumento;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Cliente extends Model
@@ -21,6 +22,17 @@ class Cliente extends Model
     ];
 
     protected $appends = ['tipo_documento'];
+
+    public function scopePorDocumento(Builder $query, string $documento, int $tipoDocumento): Builder
+    {
+        $tipos = in_array($tipoDocumento, [80, 86], true) ? [80, 86] : [$tipoDocumento];
+
+        return $query->whereRaw("REPLACE(REPLACE(REPLACE(cuit, '-', ''), '.', ''), ' ', '') = ?", [
+            preg_replace('/\D/', '', $documento),
+        ])->where(function (Builder $query) use ($tipos) {
+            $query->whereIn('tipo_documento_afip', $tipos)->orWhereNull('tipo_documento_afip');
+        });
+    }
 
     public function getTipoDocumentoAttribute(){
         $tipoDocumentos = TipoDocumento::getAll();
