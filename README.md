@@ -144,6 +144,10 @@ Esta guía proporciona instrucciones paso a paso para configurar y ejecutar el p
 
 La página de clientes permite buscar por razón social, CUIT o email. Los resultados se ordenan alfabéticamente y se muestran de a 20 por página, conservando la búsqueda al navegar. El botón **Limpiar** vuelve al listado completo.
 
+## Emisión de comprobantes
+
+Al confirmar una factura A, B o C, o una nota de crédito desde la anulación de un comprobante, se muestra un spinner que bloquea la interacción con la página y evita envíos repetidos mientras se procesa la solicitud. Si la emisión falla, se muestra el error y se permite volver a intentar.
+
 ## Formato de importes al facturar
 
 En los comprobantes A, B y C, el precio unitario se formatea mientras se escribe: `1234` se muestra como `1.234`, y tanto `1234.2` como `1234,2` se muestran como `1.234,2`. Se pueden pegar importes como `1.234,20` o `1234.20`. Los importes bonificados y subtotales, con y sin IVA, se muestran con dos decimales en formato argentino. Los cálculos y los datos enviados a la API mantienen valores numéricos sin separadores de miles.

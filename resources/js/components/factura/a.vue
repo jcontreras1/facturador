@@ -138,8 +138,8 @@
       </div>
     </div>
     
-    <button type="submit" class="btn btn-success mt-3 float-end" :disabled="invalidDocument || isLoading">
-      <span v-if="isLoading">
+    <button type="submit" class="btn btn-success mt-3 float-end" :disabled="invalidDocument || isLoading || emisionEnCurso">
+      <span v-if="emisionEnCurso">
       <i class="fas fa-spinner fa-spin"></i> Enviando...
       </span>
       <span v-else>
@@ -158,6 +158,7 @@ import { ref, reactive, computed, defineProps, onMounted } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import ImporteInput from '../ImporteInput.vue'
+import { emisionEnCurso, iniciarEmisionComprobante, finalizarEmisionComprobante } from '../../utils/emisionComprobante.js'
 
 const props = defineProps({
   condicionesIva: Object,
@@ -216,7 +217,7 @@ const clienteFijo = computed(() => {
 // Obtiene los datos extras del contribuyente
 const onDocumentoFocusOut = async () => {
   
-  if (invalidDocument.value) {
+  if (invalidDocument.value || emisionEnCurso.value) {
     return;
   }
   isLoading.value = true
@@ -288,7 +289,7 @@ const eliminarLinea = (index) => {
 onMounted(() => {
   
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'F7') {
+    if (event.key === 'F7' && !emisionEnCurso.value) {
       event.preventDefault();
       agregarLinea();
     }
@@ -322,6 +323,9 @@ onMounted(() => {
 });
 
 const submitForm = () => {
+  if (emisionEnCurso.value || isLoading.value) {
+    return
+  }
   
   form.importeTotal = importeTotal.value;
   form.importeNeto = importeTotal.value;
@@ -355,6 +359,9 @@ const submitForm = () => {
 
   }).then((result) => {
     if (result.isConfirmed) {
+      if (!iniciarEmisionComprobante()) {
+        return
+      }
       let url = '/api/comprobante/a';
       if(props.cliente){
         url += `?cliente=${props.cliente.id}`;
@@ -369,8 +376,9 @@ const submitForm = () => {
         location.href= '/comprobantes'
       })
       .catch((error) => {
-        let mensaje = error.response.data.message ?? 'Ocurrió un error al emitir la factura. Por favor, intente nuevamente.';
-        let codigo = error.response.status;
+        finalizarEmisionComprobante()
+        let mensaje = error.response?.data?.message ?? 'Ocurrió un error al emitir la factura. Por favor, intente nuevamente.';
+        let codigo = error.response?.status;
         let title = codigo == 500 ? 'Error en el servidor' : 'Error';
         console.log(error.response)
         Swal.fire({

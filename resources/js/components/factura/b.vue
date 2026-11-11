@@ -131,8 +131,8 @@
       </div>
     </div>
 
-    <button type="submit" class="btn btn-success mt-3 float-end" :disabled="invalidDocument || isLoading">
-      <span v-if="isLoading">
+    <button type="submit" class="btn btn-success mt-3 float-end" :disabled="invalidDocument || isLoading || emisionEnCurso">
+      <span v-if="emisionEnCurso">
         <i class="fas fa-spinner fa-spin"></i> Enviando...
       </span>
       <span v-else>
@@ -151,6 +151,7 @@ import { ref, reactive, computed, defineProps, onMounted } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import ImporteInput from '../ImporteInput.vue'
+import { emisionEnCurso, iniciarEmisionComprobante, finalizarEmisionComprobante } from '../../utils/emisionComprobante.js'
 
 const props = defineProps({
   condicionesIva: Object,
@@ -225,7 +226,7 @@ const handletipoDocumentoIdChange = () => {
 }
 
 const onDocumentoFocusOut = async () => {
-  if (invalidDocument.value || isDocumentoDisabled.value) {
+  if (invalidDocument.value || isDocumentoDisabled.value || emisionEnCurso.value) {
     return
   }
 
@@ -305,7 +306,7 @@ onMounted(() => {
   form.condicionIva = condicionPorDescripcion('Consumidor Final')
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'F7') {
+    if (event.key === 'F7' && !emisionEnCurso.value) {
       event.preventDefault()
       agregarLinea()
     }
@@ -337,6 +338,10 @@ onMounted(() => {
 })
 
 const submitForm = () => {
+  if (emisionEnCurso.value || isLoading.value) {
+    return
+  }
+
   form.importeTotal = importeTotal.value
   form.importeNeto = importeNeto.value
   form.lineas = lineas.value
@@ -368,6 +373,9 @@ const submitForm = () => {
     cancelButtonText: 'Cancelar',
   }).then((result) => {
     if (result.isConfirmed) {
+      if (!iniciarEmisionComprobante()) {
+        return
+      }
       let url = '/api/comprobante/b'
       if (props.cliente) {
         url += `?cliente=${props.cliente.id}`
@@ -377,6 +385,7 @@ const submitForm = () => {
           location.href = '/comprobantes'
         })
         .catch((error) => {
+          finalizarEmisionComprobante()
           const mensaje = error.response?.data?.message ?? 'Ocurrió un error al emitir la factura. Por favor, intente nuevamente.'
           const codigo = error.response?.status
           const title = codigo == 500 ? 'Error en el servidor' : 'Error'

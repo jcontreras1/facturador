@@ -133,6 +133,9 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    if (!window.iniciarEmisionComprobante('Emitiendo nota de crédito...')) {
+                        return;
+                    }
                     let form = document.getElementById('formAnularFactura');
                     form.action = url;
                     form.submit();            

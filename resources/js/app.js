@@ -2,8 +2,15 @@ import './bootstrap';
 import 'bootstrap';
 import Alpine from 'alpinejs';
 import Swal from 'sweetalert2';
+import { iniciarEmisionComprobante, finalizarEmisionComprobante } from './utils/emisionComprobante.js';
 import { createApp } from 'vue/dist/vue.esm-bundler.js';
 window.Swal = Swal;
+window.iniciarEmisionComprobante = iniciarEmisionComprobante;
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        finalizarEmisionComprobante();
+    }
+});
 window.Alpine = Alpine;
 Alpine.start();
 
