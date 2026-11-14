@@ -34,12 +34,12 @@
                 </td>
                 <!-- Columna del medio con tipo de comprobante -->
                 <td class="middle-column">
-                    <table style="width: 100%; text-align: center;">
+                    <table style="width: 50px; margin: 0 auto; text-align: center;">
                         <tr>
-                            <td style="border: 1px solid black;"><h1>{{ strtoupper($comprobante->tipoComprobante->letra) }}</h1></td>
+                            <td style="border: 1px solid black; padding: 2px;"><h1>{{ strtoupper($comprobante->tipoComprobante->letra) }}</h1></td>
                         </tr>
                         <tr>
-                            <td><strong>Cod. {{ str_pad($comprobante->tipoComprobante->codigo_afip, 2, '0', STR_PAD_LEFT) }}</strong></td>
+                            <td style="white-space: nowrap;"><strong>Cod. {{ str_pad($comprobante->tipoComprobante->codigo_afip, 2, '0', STR_PAD_LEFT) }}</strong></td>
                         </tr>
                     </table>
                 </td>
