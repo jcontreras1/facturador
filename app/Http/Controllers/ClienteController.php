@@ -73,7 +73,7 @@ class ClienteController extends Controller
     }
     
     public function dashboard(Cliente $cliente){
-        $comprobantes = $cliente->comprobantes()->orderBy('fecha', 'desc')->get();
+        $comprobantes = $cliente->comprobantes()->orderBy('fecha_emision', 'desc')->orderBy('id', 'desc')->get();
         $ivas = Iva::all();
         $items = Item::all();
         $servicios = $cliente->servicios()->orderBy('id', 'desc')->get();
