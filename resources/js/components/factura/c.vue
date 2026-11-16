@@ -93,7 +93,7 @@
             </div>
             <div class="col-12 col-md-1">
               <label for="cantidad{{ index }}">Cantidad</label>
-              <input type="number" v-model="linea.cantidad" class="form-control" @input="calcularSubtotal(index)" min="0" step="0.01" required>
+              <input type="number" v-model="linea.cantidad" class="form-control" @input="calcularSubtotal(index)" min="0" step="any" required>
             </div>
             <div class="col-12 col-md-1">
               <label for="unidadDeMedida{{ index }}">Unidad</label>
